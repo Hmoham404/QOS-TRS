@@ -94,7 +94,7 @@ VITE_SUPABASE_URL=https://votre-projet.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_votre_cle_publique
 ```
 
-L’ancienne clé publique `anon` est aussi compatible. **Ne jamais utiliser `service_role` ou une clé `sb_secret_`** : les variables `VITE_` sont incluses dans le code du navigateur. Les protections reposent sur Supabase Auth et les politiques RLS.
+L’ancienne clé publique `anon` est aussi compatible, sous le nom `VITE_SUPABASE_ANON_KEY`. Si les deux noms sont renseignés, `VITE_SUPABASE_PUBLISHABLE_KEY` est prioritaire. **Ne jamais utiliser `service_role` ou une clé `sb_secret_`** : les variables `VITE_` sont incluses dans le code du navigateur. Les protections reposent sur Supabase Auth et les politiques RLS.
 
 Relancer `npm run dev` après modification du fichier. Le site affiche alors la page de connexion. Un échec Supabase ne provoque jamais un basculement silencieux vers une sauvegarde locale.
 
@@ -113,6 +113,8 @@ node scripts/backup-to-sql.mjs "C:\chemin\QOS-sauvegarde.json" "supabase\05_repr
 Lire puis exécuter le fichier généré dans SQL Editor, après `01_schema.sql` et `03_stop_journal.sql`. Pour une reprise complète, préférer une base neuve et utiliser cette reprise à la place de `02_import_excel.sql`. Sur une base déjà remplie, les enregistrements existants sont conservés : les doublons ne sont pas remplacés. La sauvegarde JSON et sa reprise SQL conservent aussi les journaux horaires.
 
 ### 5. Mise en ligne
+
+Sur **Vercel → Project Settings → Environment Variables**, renseigner `VITE_SUPABASE_URL` et soit `VITE_SUPABASE_PUBLISHABLE_KEY`, soit `VITE_SUPABASE_ANON_KEY`, pour **Production** (et Preview si nécessaire). L’URL attendue est `https://votre-projet.supabase.co` ; un suffixe `/rest/v1/` est normalisé automatiquement. Le fichier `.env` local n’est pas envoyé par Git. Après toute modification de variable, créer un **nouveau déploiement**. Le build Vercel bloque une configuration incomplète pour éviter de publier une page inutilisable ou les données du mode local.
 
 Supabase héberge la base et l’authentification ; le frontend Vite peut être hébergé sur un hébergeur de sites statiques.
 

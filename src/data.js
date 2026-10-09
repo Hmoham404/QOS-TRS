@@ -2,11 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 import seed from '@seed';
 import { recordKey, validateRecord } from './domain';
 import { overlapError } from './daily';
+import { resolveSupabaseConfig } from './supabase-config';
 
-const url=import.meta.env.VITE_SUPABASE_URL?.trim();
-const key=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
-export const configError=Boolean(url)!==Boolean(key)?'Renseignez les deux variables Supabase dans le fichier .env.':url&&!/^https:\/\/[^\s/]+\/?$/.test(url)?'L’URL Supabase doit être une URL HTTPS valide, sans chemin.':key?.startsWith('sb_secret_')?'Utilisez une clé publique Supabase (publishable), jamais une clé secrète.':null;
-export const configured=Boolean(url && key && !configError);
+const {url,key,error:configError,configured}=resolveSupabaseConfig(import.meta.env,import.meta.env.VITE_REQUIRE_SUPABASE==='true');
+export {configError,configured};
 export const supabase=configured?createClient(url,key):null;
 const STORAGE='qos-injection-v1';
 function localRead() {
