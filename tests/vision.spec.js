@@ -1,0 +1,23 @@
+import {test,expect} from '@playwright/test';
+import {readFileSync} from 'node:fs';
+const seed=JSON.parse(readFileSync(new URL('../src/seed.json',import.meta.url),'utf8'));
+test('Vue bleu-vert : bilan réel sans horaires, interaction et affichage mobile',async({page})=>{
+ await page.goto('/');await page.getByRole('button',{name:'Vue d’ensemble',exact:true}).click();
+ await page.getByLabel('Relevé de la chronologie').selectOption(seed.records.at(-1).id);
+ const overview=page.getByTestId('shift-overview');
+ await expect(overview).toBeVisible();
+ await expect(overview.locator('.overview-stat.useful strong')).toContainText('455,0');
+ await expect(overview.locator('.overview-stat.stops strong')).toContainText('25,0');
+ await expect(overview.locator('.overview-stat.production strong')).toContainText('5 800');
+ await expect(page.locator('.timeline-placeholder')).toHaveCount(0);
+ expect(await overview.locator('.overview-grid').evaluate(e=>getComputedStyle(e).display)).toBe('grid');
+ await overview.getByRole('button',{name:'Démarrage / réglage 25,0 min',exact:true}).click();
+ await expect(overview.locator('.overview-selection')).toContainText('5,2 %');
+ await page.locator('.analysis-01').screenshot({path:'.runtime/vision-card-desktop.png'});
+ await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:'.runtime/vision-top-desktop.png'});
+ await page.setViewportSize({width:390,height:844});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+ await page.locator('.analysis-01').screenshot({path:'.runtime/vision-card-mobile.png'});
+ await overview.getByRole('button',{name:'Renseigner les horaires',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Journal des arrêts',exact:true})).toBeVisible();
+});

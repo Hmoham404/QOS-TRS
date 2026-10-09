@@ -1,0 +1,28 @@
+import {test,expect} from '@playwright/test';
+test('Journal détaillé, trois analyses, agrandissement et rotation 3D',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');await page.getByRole('button',{name:'Vue d’ensemble',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Production & arrêts',exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Pareto des arrêts machine',exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Temps utile de production',exact:true})).toBeVisible();
+ const before=await page.locator('.scene-orbit').getAttribute('style');await page.getByRole('button',{name:'Tourner la presse à droite'}).click();expect(await page.locator('.scene-orbit').getAttribute('style')).not.toBe(before);
+ await page.getByRole('button',{name:'Nouvelle saisie',exact:true}).click();await page.getByLabel('Date de production').fill('2026-10-09');
+ await page.getByLabel('Quantité conforme',{exact:true}).fill('4000');
+ await page.getByRole('checkbox',{name:/Utiliser les arrêts horodatés/}).check();
+ await page.getByLabel('Heure de début du relevé').fill('22:00');await page.getByRole('button',{name:'Minutes depuis le début',exact:true}).click();
+ await page.getByRole('button',{name:'Ajouter un arrêt',exact:true}).click();
+ await page.getByLabel('Début arrêt 1',{exact:true}).fill('50');await page.getByLabel('Fin arrêt 1',{exact:true}).fill('70');await page.getByLabel('Cause arrêt 1',{exact:true}).fill('Défaut hydraulique');
+ await page.getByRole('button',{name:'Ajouter un arrêt',exact:true}).click();await page.getByLabel('Début arrêt 2',{exact:true}).fill('130');await page.getByLabel('Fin arrêt 2',{exact:true}).fill('140');await page.getByLabel('Catégorie arrêt 2',{exact:true}).selectOption('startup');
+ await expect(page.getByLabel('Pannes',{exact:true})).toHaveValue('20');await expect(page.getByLabel('Pannes',{exact:true})).toBeDisabled();
+ await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();await expect(page.getByRole('status')).toContainText('Relevé enregistré');
+ await page.getByRole('button',{name:'Vue d’ensemble',exact:true}).click();await expect(page.locator('.timeline-svg')).toBeVisible();
+ await page.getByRole('button',{name:'Par heure',exact:true}).click();await expect(page.locator('.useful-total')).toContainText('7,5');
+ await page.getByRole('button',{name:/Défaut hydraulique, de/}).focus();await expect(page.locator('.timeline-reading')).toContainText('20,0 min');
+ await page.getByRole('button',{name:'Agrandir : Production & arrêts',exact:true}).click();await expect(page.locator('dialog[open]')).toBeVisible();await page.keyboard.press('Escape');await expect(page.locator('dialog[open]')).toHaveCount(0);
+ await page.screenshot({path:'.runtime/upgrade-desktop.png',fullPage:true});
+ await page.reload();await page.getByRole('button',{name:'Vue d’ensemble',exact:true}).click();await expect(page.locator('.timeline-svg')).toBeVisible();
+ await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Par heure',exact:true}).click();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+ await page.screenshot({path:'.runtime/upgrade-mobile.png',fullPage:true});
+ expect(errors).toEqual([]);
+});
