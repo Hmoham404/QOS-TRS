@@ -34,6 +34,8 @@ L’accueil **Bilan J−1** sélectionne la veille réelle selon la date locale 
 
 Le bilan affiche chaque presse et ses postes, les heures de marche, les arrêts (pauses planifiées incluses), les pièces conformes et le TRS. **A travaillé** signifie que du temps machine a été déclaré dans cette journée ; ce n’est pas un état machine en temps réel. **Non renseignée** signifie qu’aucun relevé n’existe, et non que la presse était arrêtée.
 
+Le bouton **PDF Production + Défauts** imprime la date et les filtres actifs sur une unique page A4 paysage. Il regroupe les pièces conformes et le temps machine par presse et poste avec les rebuts, le Pareto des arrêts, leurs durées et les causes connues. Choisir « Enregistrer au format PDF » dans la boîte d’impression du navigateur pour télécharger le fichier.
+
 Chaque presse renseignée possède sa chronologie : en haut pendant la marche déclarée, en bas pendant les arrêts, avec durée et cause au survol ou au clic. Les journaux renseignés d’une même presse se placent à leurs heures réelles. Les plages sans journal sont hachurées, sans inventer leur état. La liste **Pauses & causes d’arrêt** distingue les événements horaires des simples totaux historiques par catégorie.
 
 La **date de production est la date de début du poste**. Une nuit du 8 octobre à 22 h jusqu’au 9 octobre à 6 h appartient au bilan du 8 octobre. Le graphique et les champs du journal indiquent J+1 pour le lendemain. Les horaires proposés (06 h, 14 h, 22 h) restent modifiables. Le journal accepte les heures avec leur date, ou les minutes depuis le début. Deux relevés horodatés d’une même presse ne doivent pas se chevaucher, même avec des articles ou des dates différents.
