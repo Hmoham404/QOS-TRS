@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./tests',testMatch:'**/pwa.production.spec.js',outputDir:'.runtime/test-results-pwa',workers:1,timeout:45000,use:{baseURL:'http://127.0.0.1:4173',headless:true,reducedMotion:'reduce',launchOptions:{channel:'msedge'}},reporter:'list',webServer:{command:'node scripts/serve-pwa-test.mjs',url:'http://127.0.0.1:4173',reuseExistingServer:false}});

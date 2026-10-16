@@ -14,8 +14,9 @@ import './upgrade.css';
 import './vision.css';
 import './daily.css';
 import './journal-clock.css';
-import './daily-print.css';
-import './daily-mobile.css';
+import './pwa.css';
+import { startPwa } from './pwa';
+startPwa();
 class ErrorBoundary extends React.Component {
   state={error:null};
   static getDerivedStateFromError(error){return {error};}

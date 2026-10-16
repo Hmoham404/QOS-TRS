@@ -2,11 +2,15 @@ import { createClient } from '@supabase/supabase-js';
 import seed from '@seed';
 import { recordKey, validateRecord } from './domain';
 import { overlapError } from './daily';
-import { resolveSupabaseConfig } from './supabase-config';
 
-const {url,key,error:configError,configured}=resolveSupabaseConfig(import.meta.env,import.meta.env.VITE_REQUIRE_SUPABASE==='true');
-export {configError,configured};
-export const supabase=configured?createClient(url,key):null;
+const url=import.meta.env.VITE_SUPABASE_URL?.trim();
+const key=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
+export const configError=Boolean(url)!==Boolean(key)?'Renseignez les deux variables Supabase dans le fichier .env.':url&&!/^https:\/\/[^\s/]+\/?$/.test(url)?'L’URL Supabase doit être une URL HTTPS valide, sans chemin.':key?.startsWith('sb_secret_')?'Utilisez une clé publique Supabase (publishable), jamais une clé secrète.':null;
+export const configured=Boolean(url && key && !configError);
+// L'accès public utilise toujours la clé publique, jamais une ancienne session.
+export const supabase=configured?createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
+export const dataScope=configured?url:'local';
+const CACHE='qos-cloud-cache:'+dataScope;
 const STORAGE='qos-injection-v1';
 function localRead() {
   const raw=localStorage.getItem(STORAGE);
@@ -17,6 +21,11 @@ function localRead() {
 }
 export async function loadData() {
   if (!supabase) return localRead();
+  try {
+  if(!navigator.onLine)throw new TypeError('Failed to fetch');
+  const access=await supabase.rpc('qos_public_access_ready');
+  if(access.error)throw access.error;
+  if(access.data!==true)throw new Error('Exécutez supabase/05_planning_public_access.sql dans SQL Editor pour ouvrir cet atelier.');
   const lists=await Promise.all(['presses','articles','production_records'].map(async table=>{
     const all=[];
     for(let offset=0;;offset+=1000) {
@@ -26,13 +35,26 @@ export async function loadData() {
     }
     return all;
   }));
-  return {presses:lists[0],articles:lists[1],records:lists[2]};
+  const result={presses:lists[0],articles:lists[1],records:lists[2],cachedAt:new Date().toISOString()};
+  try{localStorage.setItem(CACHE,JSON.stringify(result));}catch{/* La lecture réseau reste utilisable si le stockage est plein. */}
+  return result;
+  } catch(error) {
+    const network=!navigator.onLine || /Failed to fetch|fetch failed|NetworkError|Load failed/i.test(error.message||'');
+    if(network){
+      let cache;try{cache=JSON.parse(localStorage.getItem(CACHE));}catch{}
+      if(cache && Array.isArray(cache.records) && Array.isArray(cache.presses) && Array.isArray(cache.articles))return {...cache,offline:true};
+      throw new Error('Connexion nécessaire pour charger cet atelier une première fois. Vos brouillons sont conservés sur cet appareil.');
+    }
+    if(['PGRST202','PGRST204','42501'].includes(error.code))throw new Error('Base à mettre à jour : exécutez supabase/05_planning_public_access.sql dans SQL Editor, puis actualisez.');
+    throw error;
+  }
 }
 export async function saveRecord(record) {
   const errors=validateRecord(record); if(errors.length)throw new Error(errors[0]);
   const r={...record};
   delete r.created_at; delete r.updated_at; delete r.created_by;
   if (supabase) {
+    if(!navigator.onLine)throw new Error('Hors connexion : votre brouillon est conservé sur cet appareil. Reconnectez-vous puis enregistrez le relevé.');
     let query;
     if(record.updated_at) query=supabase.from('production_records').update(r).eq('id',r.id).eq('updated_at',record.updated_at);
     else query=supabase.from('production_records').insert(r);
@@ -43,7 +65,7 @@ export async function saveRecord(record) {
       let retry=record.updated_at?supabase.from('production_records').update(r).eq('id',r.id).eq('updated_at',record.updated_at):supabase.from('production_records').insert(r);
       ({data,error}=await retry.select());
     }
-    if(error)throw new Error(error.code==='23505'?'Un relevé existe déjà pour cette date, ce poste, cette presse et cet article. Modifiez-le depuis l’historique.':error.message);
+    if(error)throw new Error(error.code==='23505'?'Un relevé existe déjà pour cette date, ce poste, cette presse et cet article. Modifiez-le depuis l’historique.':error.code==='PGRST204'&&/planned_qty/.test(error.message)?'Exécutez supabase/05_planning_public_access.sql dans SQL Editor. Le brouillon et sa quantité planifiée sont conservés.':error.message);
     if(!data?.length)throw new Error('Ce relevé a été modifié par un autre utilisateur. Actualisez avant de réessayer.');
   } else {
     const data=localRead();
@@ -58,6 +80,7 @@ export async function saveRecord(record) {
 }
 export async function saveReference(table,item) {
   if(supabase) {
+    if(!navigator.onLine)throw new Error('Reconnectez-vous pour enregistrer cette référence dans la base partagée.');
     const {error}=await supabase.from(table).upsert(item);
     if(error)throw error;
   } else {

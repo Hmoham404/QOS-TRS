@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "QOS · Atelier Injection",
+  "short_name": "QOS Injection",
+  "description": "Production par poste, quantités planifiées, TRS et suivi des presses de l’atelier.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f8fa",
+  "theme_color": "#102c37",
+  "icons": [
+    {"src":"/icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"/icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"/icons/maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ]
+}

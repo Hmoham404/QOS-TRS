@@ -2,6 +2,14 @@
 
 Application **React + Vite + Tailwind CSS 4**, en français, construite à partir de `QOS - TRS atelier Injection.xlsx`. Le classeur original n’est pas modifié.
 
+## Quantité planifiée et PWA
+
+La saisie comprend maintenant une quantité planifiée facultative par relevé. L’application s’ouvre directement sans compte. La PWA propose l’installation sur mobile, conserve les brouillons et annonce les mises à jour.
+
+**Base existante :** exécuter `supabase/05_planning_public_access.sql` après `03` et `04`. Ce mode ouvre la consultation, l’ajout et la modification aux personnes disposant du lien. Les anciens relevés et les calculs TRS/DLE restent inchangés.
+
+Consulter [le guide mobile et publication](docs/mobile-pwa.md) pour le SQL, Vercel, la synchronisation et les limites des essais.
+
 ## Démarrage
 
 Prérequis : Node.js 22.12 ou plus récent.
@@ -24,7 +32,7 @@ Sans configuration Supabase, le site fonctionne en **mode local**, avec les 16 p
 - Historique consultable et modifiable, recherche, pagination et export CSV compatible Excel.
 - Ajout, modification et archivage des presses et des moules/articles. L’archivage conserve l’historique.
 - Sauvegarde complète JSON, fonctionnement responsive, polices embarquées sans dépendance à Google Fonts.
-- En mode Supabase : connexion par email/mot de passe et permissions administrateur, opérateur, consultation.
+- En mode Supabase : atelier partagé en accès direct, sans écran de connexion, après la migration `05`.
 
 ## Les trois analyses
 
@@ -33,8 +41,6 @@ Sans configuration Supabase, le site fonctionne en **mode local**, avec les 16 p
 L’accueil **Bilan J−1** sélectionne la veille réelle selon la date locale de votre ordinateur. La date est modifiable, avec des boutons jour précédent/suivant et un retour J−1. Une journée sans relevé reste vide : elle n’est jamais remplacée silencieusement par la dernière journée saisie.
 
 Le bilan affiche chaque presse et ses postes, les heures de marche, les arrêts (pauses planifiées incluses), les pièces conformes et le TRS. **A travaillé** signifie que du temps machine a été déclaré dans cette journée ; ce n’est pas un état machine en temps réel. **Non renseignée** signifie qu’aucun relevé n’existe, et non que la presse était arrêtée.
-
-Le bouton **PDF Production + Défauts** imprime la date et les filtres actifs sur une unique page A4 paysage. Il regroupe les pièces conformes et le temps machine par presse et poste avec les rebuts, le Pareto des arrêts, leurs durées et les causes connues. Choisir « Enregistrer au format PDF » dans la boîte d’impression du navigateur pour télécharger le fichier.
 
 Chaque presse renseignée possède sa chronologie : en haut pendant la marche déclarée, en bas pendant les arrêts, avec durée et cause au survol ou au clic. Les journaux renseignés d’une même presse se placent à leurs heures réelles. Les plages sans journal sont hachurées, sans inventer leur état. La liste **Pauses & causes d’arrêt** distingue les événements horaires des simples totaux historiques par catégorie.
 
@@ -61,31 +67,13 @@ Créer votre projet sur Supabase. Dans **SQL Editor**, exécuter, dans cet ordre
 3. `supabase/03_stop_journal.sql` : horaires, journal des arrêts et validation de leur cohérence avec les totaux.
 4. `supabase/04_daily_review.sql` : interdit le chevauchement des relevés horodatés d’une presse, y compris au passage de minuit. Le diagnostic final signale les éventuels conflits antérieurs sans modifier les données.
 
-**Base déjà installée :** si `03_stop_journal.sql` a déjà été exécuté, exécuter seulement `04_daily_review.sql`. Sinon, exécuter `03` puis `04`. Aucun changement du `.env` n’est nécessaire pour cette mise à jour.
+**Base déjà installée :** exécuter les migrations manquantes `03`, `04`, puis `05_planning_public_access.sql`. Si `03` et `04` sont déjà en place, exécuter seulement `05`. Aucun changement du `.env` n’est nécessaire si les deux variables Supabase sont déjà valides.
 
-Le schéma et l’import peuvent être rejoués. L’import reprend les dates du 1er au 8 octobre 2026, sans inventer de relevés pour le 4 octobre, absent du fichier.
+La migration `05_planning_public_access.sql` complète cette installation pour la version actuelle en accès direct. Ne pas réimporter le classeur pour mettre à jour une base existante : l’import initial peut échouer si des références ont été archivées. L’import reprend les dates du 1er au 8 octobre 2026, sans inventer de relevés pour le 4 octobre, absent du fichier.
 
-### 2. Créer les utilisateurs
+### 2. Activer l’accès direct
 
-Dans **Authentication → Users**, créer un utilisateur avec email et mot de passe. L’application n’a pas d’inscription publique.
-
-Autoriser ensuite cet utilisateur dans SQL Editor en remplaçant l’email :
-
-```sql
-insert into public.workshop_members (user_id, role)
-select id, 'admin'
-from auth.users
-where email = 'votre@email.fr'
-on conflict (user_id) do update set role = excluded.role;
-```
-
-Rôles :
-
-- `admin` : consulter et saisir la production, gérer les presses et articles.
-- `operator` : consulter, saisir et corriger les relevés.
-- `viewer` : consulter et exporter.
-
-Tous les membres autorisés partagent **un seul atelier**. Un compte authentifié absent de `workshop_members` ne voit aucune donnée. Les autorisations des membres se gèrent dans SQL Editor, pas depuis le navigateur. Aucune suppression de production n’est exposée par l’application.
+Exécuter `supabase/05_planning_public_access.sql`. Aucun compte utilisateur n’est nécessaire. Les personnes disposant du lien peuvent consulter, ajouter et modifier les relevés et les références de l’atelier. La RLS et les contraintes métier restent actives. Les suppressions et la gestion de `workshop_members` ne sont pas ouvertes.
 
 ### 3. Renseigner `.env`
 
@@ -96,11 +84,11 @@ VITE_SUPABASE_URL=https://votre-projet.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_votre_cle_publique
 ```
 
-L’ancienne clé publique `anon` est aussi compatible, sous le nom `VITE_SUPABASE_ANON_KEY`. Si les deux noms sont renseignés, `VITE_SUPABASE_PUBLISHABLE_KEY` est prioritaire. **Ne jamais utiliser `service_role` ou une clé `sb_secret_`** : les variables `VITE_` sont incluses dans le code du navigateur. Les protections reposent sur Supabase Auth et les politiques RLS.
+L’ancienne clé publique `anon` est aussi compatible. **Ne jamais utiliser `service_role` ou une clé `sb_secret_`** : les variables `VITE_` sont incluses dans le code du navigateur. Les protections reposent sur Supabase Auth et les politiques RLS.
 
-Relancer `npm run dev` après modification du fichier. Le site affiche alors la page de connexion. Un échec Supabase ne provoque jamais un basculement silencieux vers une sauvegarde locale.
+Relancer `npm run dev` après modification du fichier. Le site ouvre directement l’atelier partagé après application de la migration `05`. Un échec Supabase ne provoque jamais un basculement silencieux vers une sauvegarde locale.
 
-Les données du classeur ne sont pas embarquées dans les builds où les variables Supabase sont renseignées. Elles proviennent alors exclusivement de la base après connexion.
+Les données du classeur ne sont pas embarquées dans les builds où les variables Supabase sont renseignées. Elles proviennent alors de la base commune ; une copie de la dernière lecture réussie est disponible hors connexion.
 
 ### 4. Passer du local au partagé
 
@@ -112,11 +100,9 @@ Avant de basculer, exporter la sauvegarde JSON depuis Configuration. Pour géné
 node scripts/backup-to-sql.mjs "C:\chemin\QOS-sauvegarde.json" "supabase\05_reprise_locale.sql"
 ```
 
-Lire puis exécuter le fichier généré dans SQL Editor, après `01_schema.sql` et `03_stop_journal.sql`. Pour une reprise complète, préférer une base neuve et utiliser cette reprise à la place de `02_import_excel.sql`. Sur une base déjà remplie, les enregistrements existants sont conservés : les doublons ne sont pas remplacés. La sauvegarde JSON et sa reprise SQL conservent aussi les journaux horaires.
+Lire puis exécuter le fichier généré dans SQL Editor, après `01_schema.sql`, `03_stop_journal.sql`, `04_daily_review.sql` et `05_planning_public_access.sql`. Pour une reprise complète, préférer une base neuve et utiliser cette reprise à la place de `02_import_excel.sql`. Sur une base déjà remplie, les enregistrements existants sont conservés : les doublons ne sont pas remplacés. La sauvegarde JSON et sa reprise SQL conservent aussi les journaux horaires.
 
 ### 5. Mise en ligne
-
-Sur **Vercel → Project Settings → Environment Variables**, renseigner `VITE_SUPABASE_URL` et soit `VITE_SUPABASE_PUBLISHABLE_KEY`, soit `VITE_SUPABASE_ANON_KEY`, pour **Production** (et Preview si nécessaire). L’URL attendue est `https://votre-projet.supabase.co` ; un suffixe `/rest/v1/` est normalisé automatiquement. Le fichier `.env` local n’est pas envoyé par Git. Après toute modification de variable, créer un **nouveau déploiement**. Le build Vercel bloque une configuration incomplète pour éviter de publier une page inutilisable ou les données du mode local.
 
 Supabase héberge la base et l’authentification ; le frontend Vite peut être hébergé sur un hébergeur de sites statiques.
 
@@ -132,7 +118,7 @@ Pour vérifier un build localement :
 npm run preview
 ```
 
-Le serveur de développement n’est pas un hébergement de production. Aucun compte Supabase réel ni déploiement en ligne n’a été configuré pendant la création ; les identifiants sont volontairement laissés à remplir.
+Le serveur de développement n’est pas un hébergement de production. Les accès Vercel et les variables publiques Supabase doivent être configurés pour publier et partager les données. Le build local ne constitue pas une publication.
 
 ## Analyse et règles du classeur
 
@@ -193,6 +179,7 @@ Sur le classeur original : **219 520 pièces conformes**, **1 250 rebuts**, **31
 npm test
 npm exec playwright test
 npm run build
+npm exec playwright test -- --config=playwright.pwa.config.js
 ```
 
 Les tests UI nécessitent que `npm run dev` soit lancé sur le port 5173 et utilisent Microsoft Edge en mode headless dans un contexte isolé.

@@ -22,6 +22,7 @@ export function aggregate(rows) {
 }
 export function validateRecord(r) {
   const errors=[];
+  if (r.planned_qty != null && (!Number.isInteger(r.planned_qty) || r.planned_qty < 0 || r.planned_qty > 2147483647)) errors.push('La quantité planifiée doit être un entier positif ou nul, au maximum 2 147 483 647.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(r.date) || Number.isNaN(Date.parse(r.date)) || new Date(r.date).toISOString().slice(0,10)!==r.date) errors.push('Choisissez une date valide.');
   if (!SHIFTS.includes(r.shift)) errors.push('Choisissez un poste.');
   if (!r.press_id || !r.article_id) errors.push('Choisissez une presse et un article.');

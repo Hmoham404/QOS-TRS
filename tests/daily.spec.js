@@ -23,22 +23,6 @@ test('Accueil J−1 : date réelle, presses, postes, absence de saisie et mobile
  expect(errors).toEqual([]);
 });
 
-test('Un seul PDF A4 paysage réunit production et défauts avec les filtres actifs',async({page})=>{
- await page.clock.setFixedTime(new Date('2026-10-09T10:00:00'));await page.goto('/');
- await page.getByLabel('Presse du bilan journalier').selectOption(seed.records.find(r=>r.date==='2026-10-08').press_id);
- const printed=page.evaluate(()=>{window.print=()=>document.documentElement.dataset.qosPrint='opened';});await printed;
- await page.getByRole('button',{name:'Télécharger PDF Production et Défauts'}).click();await expect(page.locator('html')).toHaveAttribute('data-qos-print','opened');
- await page.emulateMedia({media:'print'});
- const report=page.getByTestId('daily-print-sheet');await expect(report).toBeVisible();await expect(page.locator('.daily-review')).not.toBeVisible();
- await expect(report.locator('.daily-print-section')).toHaveCount(2);await expect(report.getByRole('heading',{name:'Production par presse'})).toBeVisible();await expect(report.getByRole('heading',{name:'Rebuts et arrêts'})).toBeVisible();
- expect(await report.locator('.daily-print-table.production tbody tr').count()).toBe(1);expect(await report.locator('.daily-print-table.defects tbody tr').count()).toBe(1);
- const layout=await report.evaluate(e=>{const r=e.getBoundingClientRect(),sections=[...e.querySelectorAll('.daily-print-section')].map(s=>({scroll:s.scrollHeight,client:s.clientHeight}));return{width:r.width,height:r.height,scroll:e.scrollHeight,client:e.clientHeight,sections,grid:getComputedStyle(e.querySelector('.daily-print-columns')).gridTemplateColumns,page:getComputedStyle(document.querySelector('.daily-print-report')).breakInside};});
- expect(layout.width).toBeGreaterThan(1000);expect(layout.scroll).toBeLessThanOrEqual(layout.client+1);expect(layout.sections.every(s=>s.scroll<=s.client+1)).toBe(true);
- await page.screenshot({path:'.runtime/daily-pdf-print.png'});
- await page.emulateMedia({media:'screen'});
- await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-});
-
 test('Courbe par presse : pauses, causes, heures de nuit, mise à jour et sauvegarde',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.clock.setFixedTime(new Date('2026-10-09T10:00:00'));await page.goto('/');
