@@ -26,6 +26,7 @@ Sans configuration Supabase, le site fonctionne en **mode local**, avec les 16 p
 ## Ce qui est disponible
 
 - Tableau de bord : TRS, disponibilité, performance, qualité, DLE, production, courbes par indicateur, répartition des arrêts, comparaison des presses et des postes.
+- Page **Courbes** : TRS global, TRS par machine, DLE et respect du planning par jour, avec filtres de dates, presse et poste, mode réunion et valeurs quotidiennes consultables. Le planning compare les pièces conformes et les quantités planifiées sur les mêmes relevés ; une quantité absente est exclue, une somme planifiée nulle donne un taux non calculable. Le camembert des pertes TRS distingue pannes, démarrage/réglage, changement de moule, pertes de cadence et rebuts en minutes théoriques, hors pauses planifiées. Les gains de cadence supérieurs à la référence sont indiqués séparément pour conserver des parts positives. Les jours sans relevé restent sans valeur.
 - Filtres par dates, presse et poste, objectif TRS configurable et mode réunion (Échap pour quitter).
 - Saisie quotidienne avec date, poste, presse, moule/article, temps, quantités, rebuts, main-d’œuvre et commentaire.
 - Champs blancs manuels ; champs gris automatiques recalculés à chaque modification. Il ne s’agit pas d’une connexion aux automates des presses.
@@ -182,7 +183,7 @@ npm run build
 npm exec playwright test -- --config=playwright.pwa.config.js
 ```
 
-Les tests UI nécessitent que `npm run dev` soit lancé sur le port 5173 et utilisent Microsoft Edge en mode headless dans un contexte isolé.
+Les tests UI démarrent le serveur sur le port 5173 si nécessaire et utilisent Microsoft Edge en mode headless dans un contexte isolé.
 
 - Comparaison de dix résultats calculés avec les valeurs Excel pour les 63 lignes.
 - Cas sans production, ratios au-delà de 100 %, pondération et validations.
@@ -190,7 +191,9 @@ Les tests UI nécessitent que `npm run dev` soit lancé sur le port 5173 et util
 - Parcours UI : saisie, rechargement persistant, modification, export, ajout de références, filtres et mode réunion.
 - Affichage mobile à 390 px, saisie et absence de débordement global.
 
-La connexion réseau à un projet Supabase réel reste à valider après renseignement de vos identifiants. PGlite teste les règles PostgreSQL avec des identités simulées, pas le service Auth hébergé.
+Le 16 octobre 2026, l'accès public à la base réelle, au marqueur de migration et à la colonne `planned_qty` a été vérifié. Les tests d'écriture sont exécutés sur PGlite et en mode local, sans ajouter de données de test à la production.
+
+Un APK Android signé est disponible dans `public/downloads/qos-injection.apk`. Son code source se trouve dans `android/`. Voir [le guide mobile](docs/mobile-pwa.md) pour l'installation, la compilation et la sauvegarde de la clé de signature. La PWA reste disponible sur Android et iPhone.
 
 ## Structure
 

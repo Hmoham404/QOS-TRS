@@ -2,10 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 import seed from '@seed';
 import { recordKey, validateRecord } from './domain';
 import { overlapError } from './daily';
+import { resolveSupabaseConfig } from './supabase-config';
 
-const url=import.meta.env.VITE_SUPABASE_URL?.trim();
-const key=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
-export const configError=Boolean(url)!==Boolean(key)?'Renseignez les deux variables Supabase dans le fichier .env.':url&&!/^https:\/\/[^\s/]+\/?$/.test(url)?'L’URL Supabase doit être une URL HTTPS valide, sans chemin.':key?.startsWith('sb_secret_')?'Utilisez une clé publique Supabase (publishable), jamais une clé secrète.':null;
+const {url,key,error:configError}=resolveSupabaseConfig(import.meta.env);
+export {configError};
 export const configured=Boolean(url && key && !configError);
 // L'accès public utilise toujours la clé publique, jamais une ancienne session.
 export const supabase=configured?createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
@@ -43,7 +43,7 @@ export async function loadData() {
     if(network){
       let cache;try{cache=JSON.parse(localStorage.getItem(CACHE));}catch{}
       if(cache && Array.isArray(cache.records) && Array.isArray(cache.presses) && Array.isArray(cache.articles))return {...cache,offline:true};
-      throw new Error('Connexion nécessaire pour charger cet atelier une première fois. Vos brouillons sont conservés sur cet appareil.');
+      throw new Error(navigator.onLine?'La base Supabase est injoignable. Vérifiez l’adresse du projet et son état dans Supabase. Aucune connexion utilisateur n’est demandée. Vos brouillons sont conservés sur cet appareil.':'Internet est nécessaire pour charger cet atelier une première fois. Vos brouillons sont conservés sur cet appareil.');
     }
     if(['PGRST202','PGRST204','42501'].includes(error.code))throw new Error('Base à mettre à jour : exécutez supabase/05_planning_public_access.sql dans SQL Editor, puis actualisez.');
     throw error;
@@ -92,5 +92,10 @@ export async function saveReference(table,item) {
   }
 }
 export function download(name,content,type='application/json') {
+  if(/QOSAndroid\//.test(navigator.userAgent)){
+    const result=window.prompt('QOS_NATIVE:'+JSON.stringify({action:'save',name,content:String(content),type}),'');
+    if(result!=='ok')throw new Error('Le fichier n’a pas pu être préparé pour Android.');
+    return;
+  }
   const url=URL.createObjectURL(new Blob([content],{type})); const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }

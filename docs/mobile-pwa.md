@@ -38,9 +38,11 @@ VITE_SUPABASE_URL=https://VOTRE-PROJET.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=VOTRE_CLE_PUBLIQUE
 ```
 
-L'URL ne doit pas contenir `/rest/v1/`. Utiliser une clé publishable ou une ancienne
-clé anon publique, jamais une clé secrète ni service_role. Sans les deux valeurs,
-l'application conserve son mode local : les appareils ne partagent pas les données.
+Utiliser l'URL du projet, sans `/rest/v1/` (les anciennes URL REST sont normalisées).
+`VITE_SUPABASE_ANON_KEY` reste accepté comme autre nom pour la clé publique.
+Utiliser une clé publishable ou une ancienne clé anon publique, jamais une clé
+secrète ni service_role. Si les deux valeurs sont absentes, le mode local est
+conservé. Une configuration partielle ou d'exemple affiche une erreur explicite.
 
 Les écritures en ligne vont directement dans Supabase. Les autres appareils
 rechargent les données lors du retour à l'application et chaque minute quand une
@@ -64,15 +66,38 @@ sur le PC ne met pas à jour les téléphones : chaque version doit être republ
 
 ## Installation
 
-- Android : ouvrir l'URL HTTPS dans Chrome/Edge, puis **Installer l'application**.
+- Android, PWA : ouvrir l'URL HTTPS dans Chrome/Edge, puis **Installer depuis le navigateur**.
   Le bouton déclenche la confirmation native quand le navigateur l'autorise.
   Sinon, les instructions indiquent le menu Installer / Ajouter à l'écran d'accueil.
 - iPhone/iPad : ouvrir dans Safari, menu de partage, **Sur l'écran d'accueil**,
   puis **Ajouter**. Activer « Ouvrir comme app » si cette option est présentée.
 - Ordinateur : bouton d'installation ou menu du navigateur compatible.
 
-La demande concerne une PWA. Aucun APK Android n'est produit. Un APK signé serait
-un livrable Android distinct et ne fonctionnerait pas sur iPhone.
+### APK Android distinct
+
+Le bouton **Télécharger l'APK Android** télécharge directement
+`https://qos-trs.vercel.app/downloads/qos-injection.apk`. Ouvrir ensuite le fichier,
+autoriser ce navigateur à installer une application si Android le demande, puis
+confirmer. Le site ne peut pas confirmer l'installation à la place de l'utilisateur.
+Cet APK signé fonctionne à partir d'Android 8 ; il ne fonctionne pas sur iPhone.
+
+L'APK est un client WebView HTTPS du site principal, avec stockage des brouillons,
+sélection de fichiers et enregistrement des exports via le sélecteur Android.
+Il demande uniquement l'accès Internet. Une première ouverture en ligne est
+nécessaire. Les données enregistrées vont dans la même base ; les brouillons de
+l'APK et du navigateur restent séparés. Les mises à jour du dashboard arrivent
+par le site et son service worker. Une modification du client Android nécessite
+un nouvel APK signé avec la même clé et un `versionCode` supérieur.
+
+Sources : `android/`. Compilation : `node scripts/build-android.mjs`, avec JDK 21,
+Android SDK Platform 35 et Build Tools 35.0.0 dans `.runtime/android-tools/`
+(ou chemins personnalisés via les variables indiquées dans le script).
+La signature et le certificat sont vérifiés par `apksigner`. L'empreinte du fichier
+est publiée dans `/downloads/qos-injection.apk.sha256`.
+
+**Sauvegarder en lieu sûr le dossier `.android-signing/`**, contenant la clé et
+son mot de passe. Il est exclu de Git et des déploiements Vercel ; il permet de
+publier les futures mises à jour Android sans changer l'identité de l'application.
 
 ## Hors connexion, brouillons et mises à jour
 
@@ -104,7 +129,7 @@ ne sont pas stockés dans ce cache et sont conservés. Si un brouillon n'a pas p
 
 ```powershell
 npm test
-# Avec npm run dev déjà lancé sur 5173 :
+# Le serveur local est démarré automatiquement si nécessaire :
 npm exec playwright test
 npm run build
 npm exec playwright test -- --config=playwright.pwa.config.js
@@ -113,13 +138,20 @@ npm exec playwright test -- --config=playwright.pwa.config.js
 La suite PWA sert le build sur le port local 4173 et simule une seconde publication,
 sans modifier `dist`. Les tests couvrent le manifeste, les ressources hors connexion,
 la conservation et reprise des brouillons, la mise à jour volontaire, le parcours
-iPhone affiché et un événement d'installation natif simulé.
+iPhone affiché, un événement d'installation natif simulé et le téléchargement
+effectif de l'APK avec le service worker actif.
 
 Ces tests utilisent Microsoft Edge automatisé avec des dimensions mobiles et un
 agent utilisateur iPhone pour les instructions. Ils ne remplacent pas un essai
 d'installation sur un vrai Android/iPhone. Les tests SQL utilisent PostgreSQL
-embarqué PGlite. La publication HTTPS et la synchronisation sur la base Supabase
-réelle doivent être vérifiées avec les accès du projet connecté.
+embarqué PGlite. Le 16 octobre 2026 : 22 tests métier/SQL, 7 parcours UI et 4 tests
+PWA réussis. Les deux sites `qos-trs.vercel.app` et `qos-trs-4qyl.vercel.app` ont
+été publiés puis contrôlés : accès sans login, réponses Supabase HTTP 200,
+16 presses, champ quantité planifiée, reprise du brouillon après rechargement,
+absence de débordement à 390 px et téléchargement de l'APK dont l'empreinte
+correspond au fichier signé. Aucun relevé de test n'a été ajouté à la base réelle.
+La signature APK a été vérifiée par les outils Android ; l'exécution et
+l'installation sur un téléphone Android physique restent à tester.
 
 Documentation : [installation PWA](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable),
 [cycle de mise à jour](https://web.dev/learn/pwa/update),

@@ -1,0 +1,11 @@
+.git
+.runtime
+.android-signing
+android
+node_modules
+dist
+test-results
+playwright-report
+tests
+.env*
+*.xlsx

@@ -20,7 +20,7 @@ self.addEventListener('message',event=>{
 self.addEventListener('fetch',event=>{
   const request=event.request,url=new URL(request.url);
   // Never cache Supabase requests, writes, tokens or arbitrary network data.
-  if(request.method!=='GET'||url.origin!==self.location.origin)return;
+  if(request.method!=='GET'||url.origin!==self.location.origin||url.pathname.startsWith('/downloads/'))return;
   if(request.mode==='navigate'){
     event.respondWith(caches.open(CACHE).then(async cache=>(await cache.match('/index.html'))||fetch(request)));
     return;

@@ -44,15 +44,27 @@ test('Mise à jour proposée, activation volontaire et conservation du brouillon
 test('Installation : parcours iPhone et événement natif simulé',async({browser})=>{
   const iphone=await browser.newContext({viewport:{width:375,height:812},userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'});
   const page=await iphone.newPage();await page.goto('/');
-  await page.getByRole('button',{name:'Installer l’application'}).click();
+  await page.getByRole('button',{name:'Installer sur iPhone'}).click();
+  await expect(page.getByRole('link',{name:'Télécharger l’APK Android'})).toHaveCount(0);
   await expect(page.getByRole('dialog')).toContainText('Safari');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:'.runtime/pwa-install-iphone.png',fullPage:true});
   await iphone.close();
   const android=await browser.newContext();const other=await android.newPage();await other.goto('/');
-  await expect(other.getByRole('button',{name:'Installer l’application'})).toBeVisible();
+  await expect(other.getByRole('button',{name:'Installer depuis le navigateur'})).toBeVisible();
   await other.evaluate(()=>{const e=new Event('beforeinstallprompt',{cancelable:true});e.prompt=async()=>{window.nativePromptCalled=true;};e.userChoice=Promise.resolve({outcome:'dismissed'});window.dispatchEvent(e);});
-  await other.getByRole('button',{name:'Installer l’application'}).click();
+  await other.getByRole('button',{name:'Installer depuis le navigateur'}).click();
   expect(await other.evaluate(()=>window.nativePromptCalled)).toBe(true);
   await android.close();
+});
+
+test('APK : téléchargement du binaire avec le service worker actif',async({page})=>{
+  await page.setViewportSize({width:390,height:844});await ready(page);
+  const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('link',{name:'Télécharger l’APK Android'}).click()]);
+  expect(download.suggestedFilename()).toBe('QOS-Injection.apk');
+  const {readFile}=await import('node:fs/promises');
+  const bytes=await readFile(await download.path());
+  expect(bytes.subarray(0,2).toString()).toBe('PK');expect(bytes.length).toBeGreaterThan(10000);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.screenshot({path:'.runtime/apk-download-mobile.png',fullPage:true});
 });
