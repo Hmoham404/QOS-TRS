@@ -1,89 +1,299 @@
-import React, { useEffect, useState } from 'react';
-import { Activity, ChartNoAxesCombined, LayoutDashboard, ClipboardPenLine, History, Factory, Settings2, ChevronRight, Plus, Monitor, Download, RefreshCw, LogOut, Database, X, AlertCircle, Check, Menu, ArrowUpRight, FileSpreadsheet, SlidersHorizontal } from 'lucide-react';
-import { configured, configError, loadData, download } from './data';
-import PwaControls from './PwaControls';
-import DraftList from './DraftList';
-import { SHIFTS, calculate, percent, formatNumber as num, dateLabel, today } from './domain';
-import Dashboard from './Dashboard';
-import Curves from './Curves.jsx';
-import Entry from './Entry';
-import References from './References';
-import PressScene from './PressScene';
-import DailyReview from './DailyReview';
-import { yesterday } from './daily';
-
-const sections=[['daily','Bilan J−1',History],['dashboard','Vue d’ensemble',LayoutDashboard],['curves','Courbes',ChartNoAxesCombined],['entry','Saisie de production',ClipboardPenLine],['history','Historique des relevés',History],['references','Presses & moules',Factory],['settings','Configuration',Settings2]];
-const titles={daily:['La veille, presse par presse.','Bilan journalier de l’atelier'],dashboard:['La performance, en perspective.','Tableau de bord de l’atelier'],curves:['Les indicateurs dans le temps.','Courbes de performance'],entry:['Chaque poste compte.','Saisie de production'],history:['La mémoire de votre atelier.','Historique des relevés'],references:['Un atelier bien référencé.','Presses & moules'],settings:['Votre espace de travail.','Configuration']};
-export function IconButton({children,label,...props}){return <button type="button" className="icon-button" aria-label={label} title={label} {...props}>{children}</button>;}
-export function Empty({title='Aucun relevé sur cette période',text='Modifiez les filtres ou ajoutez une saisie de production.',children}){return <div className="empty"><div className="empty-icon"><ClipboardPenLine size={28}/></div><h3>{title}</h3><p>{text}</p>{children}</div>;}
-export function Badge({value,target=.85}){return <span className={`badge ${value==null?'neutral':value>1?'warning':value>=target?'success':'warning'}`}>{value==null?'Non calculable':value>1?'À vérifier':value>=target?'Objectif atteint':'Sous objectif'}</span>;}
-export function exportCSV(rows,data){
-  const headers=['Date','Poste','Presse','Code moule','Article','Ouverture (min)','Arrêts planifiés (min)','Temps requis (min)','Pannes (min)','Démarrage/arrêt (min)','Changement moule (min)','Temps machine (min)','Quantité totale','Conformes','Rebuts démarrage','Rebuts production','Cycle (s/pièce)','Disponibilité (%)','Performance (%)','Qualité (%)','TRS (%)','Standard (s)','Heures dépensées','Recette (h)','DLE (%)','Commentaire','Début du relevé','Journal complet','Arrêts horodatés (JSON)','Quantité planifiée'];
-  const safe=v=>{let s=v==null?'':String(v);if(/^[=+@\-\t\r]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';};
-  const pct=v=>v==null?'':(v*100).toFixed(4).replace('.',',');
-  const lines=rows.map(r=>{const c=calculate(r),a=data.articles.find(x=>x.id===r.article_id);return [r.date,r.shift,data.presses.find(x=>x.id===r.press_id)?.name,a?.code,a?.name,r.opening_min,r.planned_min,c.required,r.breakdown_min,r.startup_min,r.changeover_min,c.runtime,c.total,r.good_qty,r.startup_rejects,r.production_rejects,r.cycle_seconds,c.availability,c.performance,c.quality,c.trs,r.standard_seconds,r.labor_hours,c.earned,c.dle,r.notes,r.shift_start||'',r.timeline_complete?'Oui':'Non',JSON.stringify(r.stop_events||[]),r.planned_qty??null].map((v,i)=>safe([17,18,19,20,24].includes(i)?pct(v):typeof v==='number'?String(v).replace('.',','):v)).join(';');});
-  download('QOS-releves.csv','\uFEFF'+[headers.map(safe).join(';'),...lines].join('\r\n'),'text/csv;charset=utf-8');
+import { EXTRA_LOSS_FIELDS, STOP_TYPES } from "./losses.js";
+import { getLocale, t as translate } from "./i18n.js";
+import useLanguage from "./useLanguage.js";
+import LanguageSelector from "./LanguageSelector.jsx";
+import ThemeSwitcher from "./ThemeSwitcher.jsx";
+import DepartmentSwitcher, { DEPARTMENTS, EmptyDepartment, getSavedDepartment } from "./DepartmentSwitcher.jsx";
+import ExcelExport from "./ExcelExport.jsx";
+import React, { useEffect, useState } from "react";
+import { Activity, ChartNoAxesCombined, LayoutDashboard, ClipboardPenLine, History, Factory, Settings2, ChevronRight, Plus, Monitor, Download, RefreshCw, LogOut, Database, X, AlertCircle, Check, Menu, ArrowUpRight, FileSpreadsheet, SlidersHorizontal } from "lucide-react";
+import { configured, configError, loadData, download } from "./data";
+import PwaControls from "./PwaControls";
+import DraftList from "./DraftList";
+import { SHIFTS, calculate, percent, formatNumber as num, dateLabel, today } from "./domain";
+import Dashboard from "./Dashboard";
+import Curves from "./Curves.jsx";
+import Entry from "./Entry";
+import References from "./References";
+import PressScene from "./PressScene";
+import DailyReview from "./DailyReview";
+import { yesterday } from "./daily";
+export function IconButton({
+  children,
+  label,
+  ...props
+}) {
+  return <button type="button" className="icon-button" aria-label={translate(label)} title={translate(label)} {...props}>{children}</button>;
 }
-export default function App(){
-  const role='admin';
-  const [activeDraft,setActiveDraft]=useState(null);
-  const [data,setData]=useState(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[page,setPage]=useState('daily'),[editing,setEditing]=useState(null),[notice,setNotice]=useState(''),[meeting,setMeeting]=useState(false),[menu,setMenu]=useState(false);
-  const [dailyDate,setDailyDate]=useState(yesterday),[entryDefaults,setEntryDefaults]=useState({}),[returnPage,setReturnPage]=useState('history');
-  useEffect(()=>{
-    let previous=yesterday();
-    const rollover=()=>{const next=yesterday();if(next!==previous){setDailyDate(date=>date===previous?next:date);previous=next;}};
-    const timer=setInterval(rollover,60000);window.addEventListener('focus',rollover);
-    return()=>{clearInterval(timer);window.removeEventListener('focus',rollover);};
-  },[]);
-  const [filters,setFilters]=useState({from:'',to:'',press:'all',shift:'all'});
-  const [target,setTarget]=useState(()=>{const n=Number(localStorage.getItem('qos-target')??85);return Number.isFinite(n)&&n>0&&n<=100?n:85;});
-  async function refresh(){setBusy(true);try{const next=await loadData();setData(next);setError('');const dates=next.records.map(r=>r.date).sort();setFilters(f=>({...f,from:f.from||dates[0]||today(),to:f.to||dates.at(-1)||today()}));}catch(e){setError(e.message);}finally{setBusy(false);}}
-  useEffect(()=>{refresh();},[]);
-  useEffect(()=>{
-    if(!configured || page==='entry')return;
-    const sync=()=>{if(navigator.onLine && document.visibilityState==='visible')refresh();};
-    const timer=setInterval(sync,60000);
-    window.addEventListener('online',sync);window.addEventListener('focus',sync);
-    return()=>{clearInterval(timer);window.removeEventListener('online',sync);window.removeEventListener('focus',sync);};
-  },[page]);
-  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),5000);return()=>clearTimeout(timer);},[notice]);
-  useEffect(()=>{const key=e=>{if(e.key==='Escape'){setMeeting(false);setMenu(false);}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
-  function go(p){setPage(p);setMenu(false);setMeeting(false);if(p==='entry'){setActiveDraft(null);setEditing(null);setEntryDefaults({});setReturnPage('history');}}
-  const canWrite=role==='admin'||role==='operator';
-  if(configError)return <div className="config-screen"><AlertCircle/><h1>Configuration à compléter</h1><p>{configError}</p><PwaControls shared/></div>;
-  const filtered=data?.records.filter(r=>(!filters.from||r.date>=filters.from)&&(!filters.to||r.date<=filters.to)&&(filters.press==='all'||r.press_id===filters.press)&&(filters.shift==='all'||r.shift===filters.shift))||[];
-  const edit=r=>{setActiveDraft(null);setEditing(r);setReturnPage(page==='daily'?'daily':'history');setPage('entry');setMeeting(false);};
-  const newDaily=defaults=>{setActiveDraft(null);setEntryDefaults(defaults);setEditing(null);setReturnPage('daily');setPage('entry');setMeeting(false);};
-  const resumeDraft=d=>{setActiveDraft(d.key);setEditing(d.editing);setEntryDefaults(d.record);setPage('entry');setReturnPage('history');};
-  return <div className={`app ${meeting?'meeting':''}`}>
-    {menu&&<button className="menu-overlay" aria-label="Fermer le menu" onClick={()=>setMenu(false)}/>}
-    <aside className={`sidebar ${menu?'open':''}`}><a className="brand" href="#" onClick={e=>{e.preventDefault();go('daily');}}><span className="brand-mark"><Activity size={24}/></span><span>QOS<span className="brand-dot">.</span></span></a><div className="workspace"><div className="workspace-icon"><Factory size={20}/></div><div><strong>Atelier Injection</strong><small>Espace de production</small></div><ChevronRight size={15}/></div><p className="nav-label">PILOTAGE DE L’ATELIER</p><nav>{sections.map(([key,label,Icon])=><button key={key} className={page===key?'active':''} onClick={()=>go(key)}><Icon size={19}/>{label}{page===key&&<span className="nav-active"/>}</button>)}</nav><div className="sidebar-insight"><span className="tiny-symbol">↗</span><strong>De la mesure<br/>à l’amélioration.</strong><p>Chaque relevé éclaire la performance de l’atelier.</p><div className="mini-bars">{[25,42,35,58,49,70,85,100].map((h,i)=><span key={i} style={{height:h+'%'}}/>)}</div></div><div className="sidebar-bottom"><div className="avatar">{configured?'AT':'QL'}</div><div><strong>{configured?'Équipe atelier':'Espace local'}</strong><small>{configured?'Accès direct · atelier partagé':'Données sur cet appareil'}</small></div></div></aside>
-    <main className="main"><header className="topbar"><div className="breadcrumb"><IconButton label="Ouvrir le menu" onClick={()=>setMenu(true)}><Menu size={19}/></IconButton><span>Atelier Injection</span><ChevronRight size={14}/><strong>{sections.find(s=>s[0]===page)?.[1]}</strong></div><div className="top-actions"><span className={`connection ${configured?'cloud':''}`}><Database size={14}/>{configured?(data?.offline?'Copie hors connexion':data?'Atelier partagé':'Connexion…'):'Mode local'}</span><span className="top-date">{new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</span><div className="avatar light">IN</div></div></header>
-      <div className="content"><div className="page-heading"><div><span className="eyebrow">{titles[page][0]}</span><h1>{titles[page][1]}<span className="heading-dot">.</span></h1></div><div className="heading-actions">{['daily','dashboard','curves'].includes(page)&&<button className="btn" onClick={()=>setMeeting(!meeting)}>{meeting?<X size={17}/>:<Monitor size={17}/>} {meeting?'Quitter la réunion':'Mode réunion'}</button>}{canWrite&&page!=='entry'&&<button className="btn primary" onClick={()=>page==='daily'?newDaily({date:dailyDate}):go('entry')}><Plus size={18}/>Nouvelle saisie</button>}</div></div>
-      {!configured&&<div className="local-banner"><span><span className="status-dot"/> Données du classeur · sauvegarde dans ce navigateur</span><button onClick={()=>go('settings')}>Configurer le partage <ChevronRight size={14}/></button></div>}
-      <PwaControls shared={configured} cachedAt={data?.offline?data.cachedAt:null}/>{page==='entry'&&<DraftList onResume={resumeDraft}/>}
-      {error&&<div className="error callout" role="alert"><AlertCircle size={19}/><span>{error}</span><button className="btn" onClick={refresh}>Réessayer</button></div>}
-      {!data?(busy?<div className="loading"><RefreshCw className="pulse"/>Chargement des données…</div>:null):<>
-      {['dashboard','history','curves'].includes(page)&&<div className="filterbar"><div className="filter-caption"><SlidersHorizontal size={18}/><strong>Périmètre</strong></div><label className="date-filter"><span>Du</span><input aria-label="Date de début" type="date" value={filters.from} max={filters.to} onChange={e=>setFilters({...filters,from:e.target.value})}/></label><label className="date-filter"><span>au</span><input aria-label="Date de fin" type="date" value={filters.to} min={filters.from} onChange={e=>setFilters({...filters,to:e.target.value})}/></label><select aria-label="Filtrer par presse" value={filters.press} onChange={e=>setFilters({...filters,press:e.target.value})}><option value="all">Toutes les presses</option>{data.presses.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><select aria-label="Filtrer par poste" value={filters.shift} onChange={e=>setFilters({...filters,shift:e.target.value})}><option value="all">Tous les postes</option>{SHIFTS.map(s=><option key={s}>{s}</option>)}</select><IconButton label="Actualiser les données" onClick={refresh} disabled={busy}><RefreshCw size={18} className={busy?'pulse':''}/></IconButton></div>}
-      {page==='daily'&&<DailyReview data={data} date={dailyDate} onDateChange={setDailyDate} onEdit={canWrite?edit:undefined} onNew={canWrite?newDaily:undefined} onRefresh={refresh} busy={busy} onExport={rows=>exportCSV(rows,data)}/>}
-      {page==='dashboard'&&<Dashboard rows={filtered} data={data} target={target/100} onNew={()=>go('entry')} meeting={meeting} onEdit={canWrite?edit:undefined} onExport={()=>exportCSV(filtered,data)}/>}
-      {page==='curves'&&<Curves rows={filtered} data={data} target={target/100} press={filters.press}/>}
-      {page==='entry'&&<Entry key={activeDraft||editing?.id||JSON.stringify(entryDefaults)} storageKey={activeDraft} data={data} editing={editing} defaults={entryDefaults} canWrite={canWrite} onSaved={async()=>{await refresh();setNotice('Relevé enregistré avec succès.');setEditing(null);setPage(returnPage);setFilters(f=>({...f,from:'',to:''}));}}/>}
-      {page==='history'&&<HistoryView rows={filtered} data={data} onEdit={edit} canWrite={canWrite} target={target/100}/>}
-      {page==='references'&&<References data={data} canEdit={role==='admin'} refresh={refresh} notify={setNotice}/>}
-      {page==='settings'&&<Settings data={data} target={target} setTarget={n=>{setTarget(n);localStorage.setItem('qos-target',String(n));}}/>}
+export function Empty({
+  title = translate("Aucun relevé sur cette période"),
+  text = translate("Modifiez les filtres ou ajoutez une saisie de production."),
+  children
+}) {
+  return <div className="empty"><div className="empty-icon"><ClipboardPenLine size={28} /></div><h3>{translate(title)}</h3><p>{translate(text)}</p>{children}</div>;
+}
+export function Badge({
+  value,
+  target = .85
+}) {
+  return <span className={`badge ${value == null ? "neutral" : value > 1 ? "warning" : value >= target ? "success" : "warning"}`}>{value == null ? translate("Non calculable") : value > 1 ? translate("À vérifier") : value >= target ? translate("Objectif atteint") : translate("Sous objectif")}</span>;
+}
+export function exportCSV(rows, data) {
+  const headers = [translate("Date"), translate("Poste"), translate("Presse"), translate("Code moule"), translate("Article"), translate("Ouverture (min)"), translate("Arrêts planifiés (min)"), translate("Temps requis (min)"), translate("Panne machine (min)"), translate("Démarrage/arrêt (min)"), translate("Changement moule (min)"), translate("Temps machine (min)"), translate("Quantité totale"), translate("Conformes"), translate("Rebuts démarrage"), translate("Rebuts production"), translate("Cycle (s/pièce)"), translate("Disponibilité (%)"), translate("Performance (%)"), translate("Qualité (%)"), translate("TRS (%)"), translate("Standard (s)"), translate("Heures dépensées"), translate("Recette (h)"), translate("DLE (%)"), translate("Commentaire"), translate("Début du relevé"), translate("Journal complet"), translate("Arrêts horodatés (JSON)"), translate("Quantité planifiée"), ...EXTRA_LOSS_FIELDS.map(field => translate(Object.values(STOP_TYPES).find(type => type.field === field).source + " (min)"))];
+  const safe = v => {
+    let s = v == null ? "" : String(v);
+    if (/^[=+@\-\t\r]/.test(s)) s = "'" + s;
+    return "\"" + s.replaceAll("\"", "\"\"") + "\"";
+  };
+  const pct = v => v == null ? "" : (v * 100).toFixed(4).replace(".", ",");
+  const lines = rows.map(r => {
+    const c = calculate(r),
+      a = data.articles.find(x => x.id === r.article_id);
+    return [r.date, translate(r.shift), data.presses.find(x => x.id === r.press_id)?.name, a?.code, a?.name, r.opening_min, r.planned_min, c.required, r.breakdown_min, r.startup_min, r.changeover_min, c.runtime, c.total, r.good_qty, r.startup_rejects, r.production_rejects, r.cycle_seconds, c.availability, c.performance, c.quality, c.trs, r.standard_seconds, r.labor_hours, c.earned, c.dle, r.notes, r.shift_start || "", r.timeline_complete ? translate("Oui") : translate("Non"), JSON.stringify(r.stop_events || []), r.planned_qty ?? null, ...EXTRA_LOSS_FIELDS.map(field => r[field] ?? 0)].map((v, i) => safe([17, 18, 19, 20, 24].includes(i) ? pct(v) : typeof v === "number" ? String(v).replace(".", ",") : v)).join(";");
+  });
+  download("QOS-releves.csv", "﻿" + [headers.map(safe).join(";"), ...lines].join("\r\n"), "text/csv;charset=utf-8");
+}
+export default function App() {
+  const language = useLanguage();
+  const [department, setDepartment] = useState(getSavedDepartment);
+  const selectedDepartment = DEPARTMENTS.find(item => item.id === department);
+  const isInjection = department === "injection";
+  useEffect(() => {
+    document.title = `QOS · ${translate(selectedDepartment.name)}`;
+  }, [language, department]);
+  function changeDepartment(next) {
+    setDepartment(next);
+    try {
+      localStorage.setItem("qos-department", next);
+    } catch {/* The session selection remains usable. */}
+    setMenu(false);
+    setMeeting(false);
+    setPage("daily");
+    setNotice("");
+  }
+  const sections = [["daily", translate("Bilan J−1"), History], ["dashboard", translate("Vue d’ensemble"), LayoutDashboard], ["curves", translate("Courbes"), ChartNoAxesCombined], ["entry", translate("Saisie de production"), ClipboardPenLine], ["history", translate("Historique des relevés"), History], ["references", translate("Presses & moules"), Factory], ["settings", translate("Configuration"), Settings2]];
+  const titles = {
+    daily: [translate("La veille, presse par presse."), translate("Bilan journalier de l’atelier")],
+    dashboard: [translate("La performance, en perspective."), translate("Tableau de bord de l’atelier")],
+    curves: [translate("Les indicateurs dans le temps."), translate("Courbes de performance")],
+    entry: [translate("Chaque poste compte."), translate("Saisie de production")],
+    history: [translate("La mémoire de votre atelier."), translate("Historique des relevés")],
+    references: [translate("Un atelier bien référencé."), translate("Presses & moules")],
+    settings: [translate("Votre espace de travail."), translate("Configuration")]
+  };
+  const role = "admin";
+  const [activeDraft, setActiveDraft] = useState(null);
+  const [data, setData] = useState(null),
+    [error, setError] = useState(""),
+    [busy, setBusy] = useState(false),
+    [page, setPage] = useState("daily"),
+    [editing, setEditing] = useState(null),
+    [notice, setNotice] = useState(""),
+    [meeting, setMeeting] = useState(false),
+    [menu, setMenu] = useState(false);
+  const [dailyDate, setDailyDate] = useState(yesterday),
+    [entryDefaults, setEntryDefaults] = useState({}),
+    [returnPage, setReturnPage] = useState("history");
+  useEffect(() => {
+    let previous = yesterday();
+    const rollover = () => {
+      const next = yesterday();
+      if (next !== previous) {
+        setDailyDate(date => date === previous ? next : date);
+        previous = next;
+      }
+    };
+    const timer = setInterval(rollover, 60000);
+    window.addEventListener("focus", rollover);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", rollover);
+    };
+  }, []);
+  const [filters, setFilters] = useState({
+    from: "",
+    to: "",
+    press: "all",
+    shift: "all"
+  });
+  const [target, setTarget] = useState(() => {
+    const n = Number(localStorage.getItem("qos-target") ?? 85);
+    return Number.isFinite(n) && n > 0 && n <= 100 ? n : 85;
+  });
+  async function refresh() {
+    setBusy(true);
+    try {
+      const next = await loadData();
+      setData(next);
+      setError("");
+      const dates = next.records.map(r => r.date).sort();
+      setFilters(f => ({
+        ...f,
+        from: f.from || dates[0] || today(),
+        to: f.to || dates.at(-1) || today()
+      }));
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  useEffect(() => {
+    if (isInjection) refresh();
+  }, [isInjection]);
+  useEffect(() => {
+    if (!configured || !isInjection || page === "entry") return;
+    const sync = () => {
+      if (navigator.onLine && document.visibilityState === "visible") refresh();
+    };
+    const timer = setInterval(sync, 60000);
+    window.addEventListener("online", sync);
+    window.addEventListener("focus", sync);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("online", sync);
+      window.removeEventListener("focus", sync);
+    };
+  }, [page, isInjection]);
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(""), 5000);
+    return () => clearTimeout(timer);
+  }, [notice]);
+  useEffect(() => {
+    const key = e => {
+      if (e.key === "Escape") {
+        setMeeting(false);
+        setMenu(false);
+      }
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, []);
+  function go(p) {
+    setPage(p);
+    setMenu(false);
+    setMeeting(false);
+    if (p === "entry") {
+      setActiveDraft(null);
+      setEditing(null);
+      setEntryDefaults({});
+      setReturnPage("history");
+    }
+  }
+  const canWrite = role === "admin" || role === "operator";
+  if (configError) return <div className="config-screen"><AlertCircle /><h1>{translate("Configuration à compléter")}</h1><p>{translate(configError)}</p><PwaControls shared /></div>;
+  const filtered = data?.records.filter(r => (!filters.from || r.date >= filters.from) && (!filters.to || r.date <= filters.to) && (filters.press === "all" || r.press_id === filters.press) && (filters.shift === "all" || r.shift === filters.shift)) || [];
+  const edit = r => {
+    setActiveDraft(null);
+    setEditing(r);
+    setReturnPage(page === "daily" ? "daily" : "history");
+    setPage("entry");
+    setMeeting(false);
+  };
+  const newDaily = defaults => {
+    setActiveDraft(null);
+    setEntryDefaults(defaults);
+    setEditing(null);
+    setReturnPage("daily");
+    setPage("entry");
+    setMeeting(false);
+  };
+  const resumeDraft = d => {
+    setActiveDraft(d.key);
+    setEditing(d.editing);
+    setEntryDefaults(d.record);
+    setPage("entry");
+    setReturnPage("history");
+  };
+  return <div className={`app ${meeting ? "meeting" : ""}`}>
+    {menu && <button className="menu-overlay" aria-label={translate("Fermer le menu")} onClick={() => setMenu(false)} />}
+    <aside className={`sidebar ${menu ? "open" : ""}`}><a className="brand" href="#" onClick={e => {
+        e.preventDefault();
+        go("daily");
+      }}><span className="brand-mark"><Activity size={24} /></span><span>QOS<span className="brand-dot">.</span></span></a><DepartmentSwitcher department={department} onChange={changeDepartment} /><p className="nav-label">{translate("PILOTAGE DE L’ATELIER")}</p><nav>{sections.map(([key, label, Icon]) => <button key={key} className={page === key ? "active" : ""} onClick={() => go(key)}><Icon size={19} />{translate(label)}{page === key && <span className="nav-active" />}</button>)}</nav><div className="sidebar-insight"><span className="tiny-symbol">↗</span><strong>{translate("De la mesure")}<br />{translate("à l’amélioration.")}</strong><p>{translate("Chaque relevé éclaire la performance de l’atelier.")}</p><div className="mini-bars">{[25, 42, 35, 58, 49, 70, 85, 100].map((h, i) => <span key={i} style={{
+            height: h + "%"
+          }} />)}</div></div><div className="sidebar-bottom"><div className="avatar">{configured ? "AT" : "QL"}</div><div><strong>{configured ? translate("Équipe atelier") : translate("Espace local")}</strong><small>{configured ? translate("Accès direct · atelier partagé") : translate("Données sur cet appareil")}</small></div></div></aside>
+    <main className="main"><header className="topbar"><div className="breadcrumb"><IconButton label={translate("Ouvrir le menu")} onClick={() => setMenu(true)}><Menu size={19} /></IconButton><span>{translate("Atelier")} {translate(selectedDepartment.name)}</span><ChevronRight size={14} /><strong>{sections.find(s => s[0] === page)?.[1]}</strong></div><div className="top-actions"><LanguageSelector /><ThemeSwitcher /><span className={`connection ${configured ? "cloud" : ""}`}><Database size={14} />{configured ? data?.offline ? translate("Copie hors connexion") : data ? translate("Atelier partagé") : translate("Connexion…") : translate("Mode local")}</span><span className="top-date">{new Date().toLocaleDateString(getLocale(), {
+              day: "numeric",
+              month: "long",
+              year: "numeric"
+            })}</span><div className="avatar light">IN</div></div></header>
+      <div className="content"><div className="page-heading"><div><span className="eyebrow">{isInjection ? titles[page][0] : translate("Espace de production vide")}</span><h1>{isInjection ? titles[page][1] : translate(selectedDepartment.name)}<span className="heading-dot">.</span></h1></div><div className="heading-actions">{isInjection && data && ["dashboard", "curves"].includes(page) && <ExcelExport rows={filtered} data={data} />}{isInjection && ["daily", "dashboard", "curves"].includes(page) && <button className="btn" onClick={() => setMeeting(!meeting)}>{meeting ? <X size={17} /> : <Monitor size={17} />} {meeting ? translate("Quitter la réunion") : translate("Mode réunion")}</button>}{isInjection && canWrite && page !== "entry" && <button className="btn primary" onClick={() => page === "daily" ? newDaily({
+              date: dailyDate
+            }) : go("entry")}><Plus size={18} />{translate("Nouvelle saisie")}</button>}</div></div>
+      {isInjection && !configured && <div className="local-banner"><span><span className="status-dot" />{translate(" Données du classeur · sauvegarde dans ce navigateur")}</span><button onClick={() => go("settings")}>{translate("Configurer le partage ")}<ChevronRight size={14} /></button></div>}
+      {isInjection && <PwaControls shared={configured} cachedAt={data?.offline ? data.cachedAt : null} />}{isInjection && page === "entry" && <DraftList onResume={resumeDraft} />}
+      {isInjection && error && <div className="error callout" role="alert"><AlertCircle size={19} /><span>{translate(error)}</span><button className="btn" onClick={refresh}>{translate("Réessayer")}</button></div>}
+      {!isInjection ? <EmptyDepartment department={department} onReturn={() => changeDepartment("injection")} /> : !data ? busy ? <div className="loading"><RefreshCw className="pulse" />{translate("Chargement des données…")}</div> : null : <>
+      {["dashboard", "history", "curves"].includes(page) && <div className="filterbar"><div className="filter-caption"><SlidersHorizontal size={18} /><strong>{translate("Périmètre")}</strong></div><label className="date-filter"><span>{translate("Du")}</span><input aria-label={translate("Date de début")} type="date" value={filters.from} max={filters.to} onChange={e => setFilters({
+                ...filters,
+                from: e.target.value
+              })} /></label><label className="date-filter"><span>{translate("au")}</span><input aria-label={translate("Date de fin")} type="date" value={filters.to} min={filters.from} onChange={e => setFilters({
+                ...filters,
+                to: e.target.value
+              })} /></label><select aria-label={translate("Filtrer par presse")} value={filters.press} onChange={e => setFilters({
+              ...filters,
+              press: e.target.value
+            })}><option value="all">{translate("Toutes les presses")}</option>{data.presses.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select><select aria-label={translate("Filtrer par poste")} value={filters.shift} onChange={e => setFilters({
+              ...filters,
+              shift: e.target.value
+            })}><option value="all">{translate("Tous les postes")}</option>{SHIFTS.map(s => <option key={s} value={s}>{translate(s)}</option>)}</select><IconButton label={translate("Actualiser les données")} onClick={refresh} disabled={busy}><RefreshCw size={18} className={busy ? "pulse" : ""} /></IconButton></div>}
+      {page === "daily" && <DailyReview data={data} date={dailyDate} onDateChange={setDailyDate} onEdit={canWrite ? edit : undefined} onNew={canWrite ? newDaily : undefined} onRefresh={refresh} busy={busy} onExport={rows => exportCSV(rows, data)} />}
+      {page === "dashboard" && <Dashboard rows={filtered} data={data} target={target / 100} onNew={() => go("entry")} meeting={meeting} onEdit={canWrite ? edit : undefined} onExport={() => exportCSV(filtered, data)} />}
+      {page === "curves" && <Curves rows={filtered} data={data} target={target / 100} press={filters.press} />}
+      {page === "entry" && <Entry key={activeDraft || editing?.id || JSON.stringify(entryDefaults)} storageKey={activeDraft} data={data} editing={editing} defaults={entryDefaults} canWrite={canWrite} onSaved={async () => {
+            await refresh();
+            setNotice(translate("Relevé enregistré avec succès."));
+            setEditing(null);
+            setPage(returnPage);
+            setFilters(f => ({
+              ...f,
+              from: "",
+              to: ""
+            }));
+          }} />}
+      {page === "history" && <HistoryView rows={filtered} data={data} onEdit={edit} canWrite={canWrite} target={target / 100} />}
+      {page === "references" && <References data={data} canEdit={role === "admin"} refresh={refresh} notify={setNotice} />}
+      {page === "settings" && <Settings data={data} target={target} setTarget={n => {
+            setTarget(n);
+            localStorage.setItem("qos-target", String(n));
+          }} />}
       </>}
-      <footer className="footer"><span>QOS <span>/</span> ATELIER INJECTION</span><span>Des données utiles. Des décisions concrètes.</span></footer></div>
-    </main>{notice&&<div className="toast" role="status"><Check size={19}/>{notice}<IconButton label="Fermer la notification" onClick={()=>setNotice('')}><X size={16}/></IconButton></div>}
+      <footer className="footer"><span>QOS <span>/</span>{" "}{translate("Atelier")} {translate(selectedDepartment.name)}</span><span>{translate("Des données utiles. Des décisions concrètes.")}</span></footer></div>
+    </main>{notice && <div className="toast" role="status"><Check size={19} />{translate(notice)}<IconButton label={translate("Fermer la notification")} onClick={() => setNotice("")}><X size={16} /></IconButton></div>}
   </div>;
 }
-function HistoryView({rows,data,onEdit,canWrite,target}){
-  const [search,setSearch]=useState(''),[page,setPage]=useState(1);
-  useEffect(()=>setPage(1),[rows.length,search]);
-  const matching=rows.filter(r=>[data.presses.find(p=>p.id===r.press_id)?.name,data.articles.find(a=>a.id===r.article_id)?.name,r.notes].join(' ').toLowerCase().includes(search.toLowerCase())).sort((a,b)=>b.date.localeCompare(a.date)||SHIFTS.indexOf(a.shift)-SHIFTS.indexOf(b.shift));
-  const max=Math.max(1,Math.ceil(matching.length/15)),current=Math.min(page,max);
-  return <section className="panel history-panel"><div className="panel-heading"><div><h2>Tous les relevés <span className="count">{matching.length}</span></h2><p>Retrouvez et corrigez les saisies de votre atelier.</p></div><div className="inline-actions"><input aria-label="Rechercher un relevé" placeholder="Rechercher une presse, un article…" value={search} onChange={e=>setSearch(e.target.value)}/><button className="btn" onClick={()=>exportCSV(matching,data)} disabled={!matching.length}><Download size={17}/>Exporter CSV</button></div></div>{!matching.length?<Empty/>:<><div className="table-scroll"><table><thead><tr><th>Date / poste</th><th>Presse</th><th>Article</th><th>Planifiées</th><th>Conformes</th><th>Rebuts</th><th>TRS</th><th>DLE</th><th>État</th><th><span className="sr-only">Action</span></th></tr></thead><tbody>{matching.slice((current-1)*15,current*15).map(r=>{const c=calculate(r),a=data.articles.find(a=>a.id===r.article_id);return <tr key={r.id}><td><strong>{dateLabel(r.date)} {r.date.slice(0,4)}</strong><small>{r.shift}</small></td><td><span className="press-name"><Factory size={16}/>{data.presses.find(p=>p.id===r.press_id)?.name}</span></td><td><strong>{a?.name}</strong><small>{a?.code}</small></td><td>{num(r.planned_qty)}</td><td>{num(r.good_qty)}</td><td>{num(c.rejects)}</td><td className="numeric-emphasis">{percent(c.trs)}</td><td>{percent(c.dle)}</td><td><Badge value={c.trs} target={target}/></td><td><button className="text-button" onClick={()=>onEdit(r)}>{canWrite?'Modifier':'Consulter'}<ChevronRight size={14}/></button></td></tr>;})}</tbody></table></div><div className="pagination"><span>{matching.length} relevés · {current} / {max}</span><div><button className="btn" disabled={current===1} onClick={()=>setPage(current-1)}>Précédent</button><button className="btn" disabled={current===max} onClick={()=>setPage(current+1)}>Suivant</button></div></div></>}</section>;
+function HistoryView({
+  rows,
+  data,
+  onEdit,
+  canWrite,
+  target
+}) {
+  const [search, setSearch] = useState(""),
+    [page, setPage] = useState(1);
+  useEffect(() => setPage(1), [rows.length, search]);
+  const matching = rows.filter(r => [data.presses.find(p => p.id === r.press_id)?.name, data.articles.find(a => a.id === r.article_id)?.name, r.notes].join(" ").toLowerCase().includes(search.toLowerCase())).sort((a, b) => b.date.localeCompare(a.date) || SHIFTS.indexOf(a.shift) - SHIFTS.indexOf(b.shift));
+  const max = Math.max(1, Math.ceil(matching.length / 15)),
+    current = Math.min(page, max);
+  return <section className="panel history-panel"><div className="panel-heading"><div><h2>{translate("Tous les relevés ")}<span className="count">{matching.length}</span></h2><p>{translate("Retrouvez et corrigez les saisies de votre atelier.")}</p></div><div className="inline-actions"><input aria-label={translate("Rechercher un relevé")} placeholder={translate("Rechercher une presse, un article…")} value={search} onChange={e => setSearch(e.target.value)} /><ExcelExport rows={matching} data={data} /><button className="btn" onClick={() => exportCSV(matching, data)} disabled={!matching.length}><Download size={17} />{translate("Exporter CSV")}</button></div></div>{!matching.length ? <Empty /> : <><div className="table-scroll"><table><thead><tr><th>{translate("Date / poste")}</th><th>{translate("Presse")}</th><th>{translate("Article")}</th><th>{translate("Planifiées")}</th><th>{translate("Conformes")}</th><th>{translate("Rebuts")}</th><th>{translate("TRS")}</th><th>{translate("DLE")}</th><th>{translate("État")}</th><th><span className="sr-only">{translate("Action")}</span></th></tr></thead><tbody>{matching.slice((current - 1) * 15, current * 15).map(r => {
+              const c = calculate(r),
+                a = data.articles.find(a => a.id === r.article_id);
+              return <tr key={r.id}><td><strong>{dateLabel(r.date)} {r.date.slice(0, 4)}</strong><small>{translate(r.shift)}</small></td><td><span className="press-name"><Factory size={16} />{data.presses.find(p => p.id === r.press_id)?.name}</span></td><td><strong>{a?.name}</strong><small>{a?.code}</small></td><td>{num(r.planned_qty)}</td><td>{num(r.good_qty)}</td><td>{num(c.rejects)}</td><td className="numeric-emphasis">{percent(c.trs)}</td><td>{percent(c.dle)}</td><td><Badge value={c.trs} target={target} /></td><td><button className="text-button" onClick={() => onEdit(r)}>{canWrite ? translate("Modifier") : translate("Consulter")}<ChevronRight size={14} /></button></td></tr>;
+            })}</tbody></table></div><div className="pagination"><span>{matching.length}{translate(" relevés · ")}{current} / {max}</span><div><button className="btn" disabled={current === 1} onClick={() => setPage(current - 1)}>{translate("Précédent")}</button><button className="btn" disabled={current === max} onClick={() => setPage(current + 1)}>{translate("Suivant")}</button></div></div></>}</section>;
 }
-function Settings({data,target,setTarget}){
- return <div className="settings-grid"><section className="panel settings-card"><Database className="section-icon"/><h2>Sauvegarde & connexion</h2><span className="badge success">{configured?'Base Supabase':'Sauvegarde locale'}</span><p>{configured?'Les relevés sont partagés entre les appareils, sans compte. Toute personne disposant du lien peut consulter et modifier l’atelier.':'Les modifications sont conservées uniquement dans ce navigateur. Exportez une sauvegarde avant de changer d’appareil ou de vider les données du navigateur.'}</p><button className="btn primary" onClick={()=>download('QOS-sauvegarde-'+today()+'.json',JSON.stringify({version:1,exported_at:new Date().toISOString(),...data},null,2))}><Download size={17}/>Sauvegarder toutes les données</button><h3>Connexion à Supabase</h3><ol><li>Exécuter <code>supabase/01_schema.sql</code>.</li><li>Importer le classeur avec <code>02_import_excel.sql</code>.</li><li>Ajouter le journal avec <code>03_stop_journal.sql</code>.</li><li>Renforcer les horaires avec <code>04_daily_review.sql</code>.</li><li>Activer la quantité planifiée et l’accès direct avec <code>05_planning_public_access.sql</code>.</li><li>Renseigner les deux valeurs du fichier <code>.env</code> et relancer l’application.</li></ol><small>Le guide README détaille la mise en ligne. Les nouvelles saisies locales ne sont pas transférées automatiquement vers Supabase.</small></section><div><section className="panel settings-card"><Settings2 className="section-icon"/><h2>Objectif TRS</h2><p>Seuil d’analyse pour les graphiques et les états. Préférence de ce navigateur ; valeur initiale proposée : 85 %.</p><label className="target-input">Objectif (%)<input type="number" min="1" max="100" step="1" value={target} onChange={e=>{const v=Number(e.target.value);if(v>=1&&v<=100)setTarget(v);}}/></label></section><section className="panel settings-card formula-card"><FileSpreadsheet className="section-icon"/><h2>Une méthode transparente</h2><p>Les calculs par relevé reprennent le classeur. La synthèse utilise les temps et quantités cumulés.</p><dl><dt>Disponibilité</dt><dd>Temps machine ÷ temps requis</dd><dt>Performance</dt><dd>Quantité totale × cycle ÷ temps machine en secondes</dd><dt>Qualité</dt><dd>Quantité conforme ÷ quantité totale</dd><dt>TRS atelier</dt><dd>Σ (conformes × cycle) ÷ Σ temps requis en secondes</dd><dt>DLE</dt><dd>Recette en heures ÷ heures dépensées</dd></dl><small>Les périodes sans temps requis sont non calculables. Les ratios dépassant 100 % sont conservés et signalés. Avec des cycles différents, le produit des trois taux agrégés peut différer du TRS global.</small></section></div></div>;
+function Settings({
+  data,
+  target,
+  setTarget
+}) {
+  return <div className="settings-grid"><section className="panel settings-export"><div><span className="eyebrow">{translate("Export Excel")}</span><h2>{translate("Exporter toutes les données")}</h2><p>{translate("Téléchargez un classeur Excel contenant la synthèse et tous les relevés de l’atelier Injection.")}</p></div><ExcelExport rows={data.records} data={data} className="btn primary" /></section><section className="panel settings-card"><Database className="section-icon" /><h2>{translate("Sauvegarde & connexion")}</h2><span className="badge success">{configured ? translate("Base Supabase") : translate("Sauvegarde locale")}</span><p>{configured ? translate("Les relevés sont partagés entre les appareils, sans compte. Toute personne disposant du lien peut consulter et modifier l’atelier.") : translate("Les modifications sont conservées uniquement dans ce navigateur. Exportez une sauvegarde avant de changer d’appareil ou de vider les données du navigateur.")}</p><button className="btn primary" onClick={() => download("QOS-sauvegarde-" + today() + ".json", JSON.stringify({
+        version: 1,
+        exported_at: new Date().toISOString(),
+        ...data
+      }, null, 2))}><Download size={17} />{translate("Sauvegarder toutes les données")}</button><h3>{translate("Connexion à Supabase")}</h3><ol><li>{translate("Exécuter ")}<code>supabase/01_schema.sql</code>.</li><li>{translate("Importer le classeur avec ")}<code>02_import_excel.sql</code>.</li><li>{translate("Ajouter le journal avec ")}<code>03_stop_journal.sql</code>.</li><li>{translate("Renforcer les horaires avec ")}<code>04_daily_review.sql</code>.</li><li>{translate("Activer la quantité planifiée et l’accès direct avec ")}<code>05_planning_public_access.sql</code>.</li><li>{translate("Ajouter les causes de pertes avec ")}<code>06_loss_categories.sql</code>.</li><li>{translate("Renseigner les deux valeurs du fichier ")}<code>.env</code>{translate(" et relancer l’application.")}</li></ol><small>{translate("Le guide README détaille la mise en ligne. Les nouvelles saisies locales ne sont pas transférées automatiquement vers Supabase.")}</small></section><div><section className="panel settings-card"><Settings2 className="section-icon" /><h2>{translate("Objectif TRS")}</h2><p>{translate("Seuil d’analyse pour les graphiques et les états. Préférence de ce navigateur ; valeur initiale proposée : 85 %.")}</p><label className="target-input">{translate("Objectif (%)")}<input type="number" min="1" max="100" step="1" value={target} onChange={e => {
+            const v = Number(e.target.value);
+            if (v >= 1 && v <= 100) setTarget(v);
+          }} /></label></section><section className="panel settings-card formula-card"><FileSpreadsheet className="section-icon" /><h2>{translate("Une méthode transparente")}</h2><p>{translate("Les calculs par relevé reprennent le classeur. La synthèse utilise les temps et quantités cumulés.")}</p><dl><dt>{translate("Disponibilité")}</dt><dd>{translate("Temps machine ÷ temps requis")}</dd><dt>{translate("Performance")}</dt><dd>{translate("Quantité totale × cycle ÷ temps machine en secondes")}</dd><dt>{translate("Qualité")}</dt><dd>{translate("Quantité conforme ÷ quantité totale")}</dd><dt>{translate("TRS atelier")}</dt><dd>{translate("Σ (conformes × cycle) ÷ Σ temps requis en secondes")}</dd><dt>{translate("DLE")}</dt><dd>{translate("Recette en heures ÷ heures dépensées")}</dd></dl><small>{translate("Les périodes sans temps requis sont non calculables. Les ratios dépassant 100 % sont conservés et signalés. Avec des cycles différents, le produit des trois taux agrégés peut différer du TRS global.")}</small></section></div></div>;
 }

@@ -40,7 +40,7 @@ test('Courbe par presse : pauses, causes, heures de nuit, mise à jour et sauveg
  await page.getByLabel('Heure de début arrêt 2',{exact:true}).fill('01:00');await page.getByLabel('Jour de début arrêt 2',{exact:true}).selectOption('1');
  await page.getByLabel('Heure de fin arrêt 2',{exact:true}).fill('01:10');await page.getByLabel('Jour de fin arrêt 2',{exact:true}).selectOption('1');
  await page.getByLabel('Cause arrêt 2',{exact:true}).fill('Hydraulique');
- await expect(page.getByLabel('Arrêts planifiés',{exact:true})).toHaveValue('20');await expect(page.getByLabel('Pannes',{exact:true})).toHaveValue('10');
+ await expect(page.getByLabel('Arrêts planifiés',{exact:true})).toHaveValue('20');await expect(page.getByLabel('Panne machine',{exact:true})).toHaveValue('10');
  await page.screenshot({path:'.runtime/daily-journal.png',fullPage:true});
  await page.getByRole('button',{name:'Enregistrer les modifications',exact:true}).click();await expect(page.getByRole('status')).toContainText('Relevé enregistré');
  await expect(page.getByLabel('Date du bilan journalier')).toHaveValue('2026-10-08');await expect(card.locator('.daily-curve')).toBeVisible();

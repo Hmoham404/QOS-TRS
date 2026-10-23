@@ -1,5 +1,13 @@
 # QOS : quantité planifiée, accès direct et mobile
 
+## Mise à jour du 23 octobre 2026
+
+Le site propose FR, AR, EN, IT et 中文 sur les sept écrans, avec persistance de la langue et disposition de droite à gauche pour l’arabe. Le sélecteur de l’atelier donne accès à Injection et aux espaces vides Assemblage, Soudure, Métallisation et Sérigraphie. Ces quatre espaces ne sont pas encore reliés à une base métier.
+
+L’export `.xlsx` contient une synthèse et les relevés du périmètre sélectionné. Il reste disponible hors connexion après préparation du cache PWA. Le nouvel APK 1.1.0 (`versionCode` 2) gère les fichiers binaires Excel, avec la même identité de signature ; l’APK 1.0 nécessite cette mise à jour pour l’export Excel.
+
+Vérifications locales de cette évolution : **30 tests métier/SQL/Excel, 18 parcours navigateur, 5 scénarios PWA et build réussis**. La signature de l’APK a été vérifiée. Les tests incluent la saisie dans les cinq langues, la reprise après changement de langue, l’absence de mélange entre départements, le téléchargement et la relecture des classeurs, le pont d’export Android simulé et l’export Excel hors connexion. Les tests UI utilisent désormais un serveur dédié sur le port 5175, avec Supabase désactivé. Aucun essai d’écriture sur une base de production ni installation sur téléphone physique n’a été effectué. Cette vérification ne constitue pas une publication.
+
 ## Mise à jour de la base existante
 
 Dans Supabase → SQL Editor, ouvrir et exécuter **tout** le fichier
@@ -8,6 +16,8 @@ Il s'exécute après `01_schema.sql`, `03_stop_journal.sql` et `04_daily_review.
 Sur une base déjà en service avec ces migrations, ne pas réimporter `02_import_excel.sql`.
 Pour une nouvelle base, exécuter `01`, éventuellement `02` pour reprendre le classeur,
 puis `03`, `04` et `05`.
+
+Pour les nouvelles causes de pertes, appliquer ensuite [`supabase/06_loss_categories.sql`](../supabase/06_loss_categories.sql). Si les migrations précédentes sont déjà installées, seule `06` est nécessaire. Les anciens relevés restent inchangés ; les nouveaux champs démarrent à zéro.
 
 La migration est rejouable. Elle ajoute `production_records.planned_qty`, facultatif,
 entier positif ou nul. Les anciens relevés gardent NULL (« non renseignée »).

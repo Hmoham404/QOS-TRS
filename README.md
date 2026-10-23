@@ -1,12 +1,28 @@
 # QOS · Atelier Injection
 
-Application **React + Vite + Tailwind CSS 4**, en français, construite à partir de `QOS - TRS atelier Injection.xlsx`. Le classeur original n’est pas modifié.
+Application **React + Vite + Tailwind CSS 4**, disponible en cinq langues, construite à partir de `QOS - TRS atelier Injection.xlsx`. Le classeur original n’est pas modifié.
+
+## Langues, départements et export Excel
+
+Le sélecteur **Traduction** propose le français, l’arabe, l’anglais, l’italien et le chinois simplifié. Le choix est conservé sur cet appareil. Les écrans, champs, filtres, messages, libellés de graphiques et exports utilisent la langue choisie ; l’arabe s’affiche de droite à gauche. Les noms saisis, codes articles et commentaires restent dans leur forme originale. Les valeurs de postes enregistrées restent `Matin`, `Après-Midi` et `Nuit`, quelle que soit la langue d’affichage.
+
+Le sélecteur **Jour / Nuit** de la barre supérieure adapte les sept écrans, formulaires, tableaux, graphiques et dialogues. Il suit le thème du système au premier démarrage, puis conserve le choix explicite sur cet appareil, y compris hors connexion. Les onglets ouverts sur la même adresse se synchronisent. Le changement de thème conserve la saisie en cours. Le bandeau « Votre atelier. Une nouvelle perspective. » a été retiré pour donner plus de place aux indicateurs.
+
+Le bouton **Atelier Injection** de la barre latérale ouvre les départements Injection, Assemblage, Soudure, Métallisation et Sérigraphie. Les quatre nouveaux départements affichent un espace vide distinct ; aucune donnée d’Injection n’y est copiée et aucune saisie ne leur est attribuée. Leur connexion à des données métier nécessitera une configuration ultérieure. Le département sélectionné reste mémorisé après rechargement.
+
+**Exporter Excel** télécharge un véritable fichier `.xlsx`, comprenant une synthèse pondérée et les relevés détaillés. Dans le bilan journalier, l’export respecte ses filtres ; dans les vues d’ensemble et Courbes, il respecte le périmètre sélectionné ; dans l’historique, il respecte aussi la recherche. Configuration propose l’export de tous les relevés Injection. Les dates et nombres restent typés, les taux sont formatés en pourcentages et la synthèse contient des formules avec résultats sauvegardés. Le CSV et la sauvegarde JSON restent disponibles.
+
+L’APK **1.1.0** (`versionCode` 2), signé avec la même clé, prend en charge les exports Excel binaires. Les utilisateurs de l’APK 1.0 doivent installer cette mise à jour pour exporter en Excel ; le navigateur prend en charge l’export directement. Le site et l’APK doivent être republiés pour que les appareils distants reçoivent ces changements.
+
+## Pertes et courbes
+
+Les neuf causes demandées sont disponibles dans la saisie, le journal, les bilans, le Pareto et les exports. « Pannes » devient « Panne machine ». Les durées de démarrage et de changement de moule sont conservées. Les points des courbes affichent leurs pourcentages, avec les nombres de la langue choisie. Le guide [Pertes et interface](docs/pertes-et-interface.md) explique les calculs et la migration `06_loss_categories.sql` à appliquer à Supabase.
 
 ## Quantité planifiée et PWA
 
 La saisie comprend maintenant une quantité planifiée facultative par relevé. L’application s’ouvre directement sans compte. La PWA propose l’installation sur mobile, conserve les brouillons et annonce les mises à jour.
 
-**Base existante :** exécuter `supabase/05_planning_public_access.sql` après `03` et `04`. Ce mode ouvre la consultation, l’ajout et la modification aux personnes disposant du lien. Les anciens relevés et les calculs TRS/DLE restent inchangés.
+**Base existante :** exécuter les migrations manquantes dans l’ordre : `03`, `04`, `05_planning_public_access.sql`, puis `06_loss_categories.sql`. Le mode `05` ouvre la consultation, l’ajout et la modification aux personnes disposant du lien. Les nouvelles pertes valent zéro sur les anciens relevés, dont les résultats restent inchangés.
 
 Consulter [le guide mobile et publication](docs/mobile-pwa.md) pour le SQL, Vercel, la synchronisation et les limites des essais.
 
@@ -67,8 +83,10 @@ Créer votre projet sur Supabase. Dans **SQL Editor**, exécuter, dans cet ordre
 2. `supabase/02_import_excel.sql` : données réelles du classeur, sans écraser les lignes existantes.
 3. `supabase/03_stop_journal.sql` : horaires, journal des arrêts et validation de leur cohérence avec les totaux.
 4. `supabase/04_daily_review.sql` : interdit le chevauchement des relevés horodatés d’une presse, y compris au passage de minuit. Le diagnostic final signale les éventuels conflits antérieurs sans modifier les données.
+5. `supabase/05_planning_public_access.sql` : quantité planifiée et accès direct à l’atelier.
+6. `supabase/06_loss_categories.sql` : nouvelles causes de pertes, validation du journal et mise à jour du temps machine.
 
-**Base déjà installée :** exécuter les migrations manquantes `03`, `04`, puis `05_planning_public_access.sql`. Si `03` et `04` sont déjà en place, exécuter seulement `05`. Aucun changement du `.env` n’est nécessaire si les deux variables Supabase sont déjà valides.
+**Base déjà installée :** exécuter les migrations manquantes `03`, `04`, `05_planning_public_access.sql`, puis `06_loss_categories.sql`. Si les migrations `03` à `05` sont déjà en place, exécuter seulement `06`. Aucun changement du `.env` n’est nécessaire si les deux variables Supabase sont déjà valides.
 
 La migration `05_planning_public_access.sql` complète cette installation pour la version actuelle en accès direct. Ne pas réimporter le classeur pour mettre à jour une base existante : l’import initial peut échouer si des références ont été archivées. L’import reprend les dates du 1er au 8 octobre 2026, sans inventer de relevés pour le 4 octobre, absent du fichier.
 
@@ -101,7 +119,7 @@ Avant de basculer, exporter la sauvegarde JSON depuis Configuration. Pour géné
 node scripts/backup-to-sql.mjs "C:\chemin\QOS-sauvegarde.json" "supabase\05_reprise_locale.sql"
 ```
 
-Lire puis exécuter le fichier généré dans SQL Editor, après `01_schema.sql`, `03_stop_journal.sql`, `04_daily_review.sql` et `05_planning_public_access.sql`. Pour une reprise complète, préférer une base neuve et utiliser cette reprise à la place de `02_import_excel.sql`. Sur une base déjà remplie, les enregistrements existants sont conservés : les doublons ne sont pas remplacés. La sauvegarde JSON et sa reprise SQL conservent aussi les journaux horaires.
+Lire puis exécuter le fichier généré dans SQL Editor, après `01_schema.sql`, `03_stop_journal.sql`, `04_daily_review.sql`, `05_planning_public_access.sql` et `06_loss_categories.sql`. Pour une reprise complète, préférer une base neuve et utiliser cette reprise à la place de `02_import_excel.sql`. Sur une base déjà remplie, les enregistrements existants sont conservés : les doublons ne sont pas remplacés. La sauvegarde JSON et sa reprise SQL conservent aussi les journaux horaires et toutes les catégories de pertes.
 
 ### 5. Mise en ligne
 
@@ -183,7 +201,7 @@ npm run build
 npm exec playwright test -- --config=playwright.pwa.config.js
 ```
 
-Les tests UI démarrent le serveur sur le port 5173 si nécessaire et utilisent Microsoft Edge en mode headless dans un contexte isolé.
+Les tests UI démarrent leur propre serveur local sur le port 5175, avec Supabase désactivé, et utilisent Microsoft Edge en mode headless dans un contexte isolé. Ils ne réutilisent pas le serveur de travail sur le port 5173.
 
 - Comparaison de dix résultats calculés avec les valeurs Excel pour les 63 lignes.
 - Cas sans production, ratios au-delà de 100 %, pondération et validations.

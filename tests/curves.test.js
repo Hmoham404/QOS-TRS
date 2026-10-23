@@ -15,7 +15,7 @@ test('Le planning compare les mêmes relevés, distingue zéro et absence et gar
 test('Les pertes du TRS reconstituent le temps requis avec cadence et rebuts, hors pauses planifiées', () => {
   const r = row({});
   const loss = trsLosses([r]);
-  assert.deepEqual(loss.items.map(item => item.minutes), [10, 5, 5, 10, 10]);
+  assert.deepEqual(['breakdown', 'startup', 'changeover', 'speed', 'quality'].map(key => loss.items.find(item => item.key === key).minutes), [10, 5, 5, 10, 10]);
   assert.equal(loss.total, 40);
   assert.equal(loss.speedGain, 0);
   assert.equal(loss.total + aggregate([r]).goodIdeal / 60, 100);

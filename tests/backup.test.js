@@ -11,6 +11,8 @@ test('Une sauvegarde locale se restaure en SQL sans perdre les cycles historique
  seed.records[0].notes="L'opérateur a vérifié le moule; SELECT n'est que du texte.";
  seed.records[0].cycle_seconds=6;
  seed.records[0].planned_qty=8000;
+ seed.records[3].staffing_min=7;
+ seed.records[3].mold_breakdown_min=11;
  seed.presses[0].active=false;
  const dir=mkdtempSync(join(tmpdir(),'qos-backup-test-')),input=join(dir,'backup.json'),output=join(dir,'restore.sql');
  const db=new PGlite();
@@ -23,10 +25,13 @@ test('Une sauvegarde locale se restaure en SQL sans perdre les cycles historique
   await db.exec(readFileSync(new URL('../supabase/03_stop_journal.sql',import.meta.url),'utf8'));
   await db.exec(readFileSync(new URL('../supabase/04_daily_review.sql',import.meta.url),'utf8'));
   await db.exec(readFileSync(new URL('../supabase/05_planning_public_access.sql',import.meta.url),'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/06_loss_categories.sql',import.meta.url),'utf8'));
   await db.exec(readFileSync(output,'utf8'));
   const r=(await db.query('select * from public.production_records where id=$1',[seed.records[0].id])).rows[0];
   assert.equal(r.notes,seed.records[0].notes);assert.equal(Number(r.cycle_seconds),6);
   assert.equal(r.planned_qty,8000);
+  const lossRow=(await db.query('select staffing_min,mold_breakdown_min from public.production_records where id=$1',[seed.records[3].id])).rows[0];
+  assert.equal(Number(lossRow.staffing_min),7);assert.equal(Number(lossRow.mold_breakdown_min),11);
   assert.equal((await db.query('select * from public.production_records')).rows.length,63);
   assert.equal((await db.query("select tgenabled from pg_trigger where tgname='prepare_production_record'")).rows[0].tgenabled,'O');
  }finally{await db.close();for(const f of [input,output])try{unlinkSync(f);}catch{}rmdirSync(dir);}

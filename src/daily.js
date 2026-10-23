@@ -38,7 +38,7 @@ export function dailyPresses(data, date, { press = 'all', shift = 'all' } = {}) 
       return { ...p, records, totals, shifts, complete,
         status: !records.length ? 'missing' : totals.runtime > 0 ? 'worked' : 'stopped',
         opening: records.reduce((sum, r) => sum + Number(r.opening_min), 0),
-        stopped: totals.planned + totals.breakdown + totals.startup + totals.changeover,
+        stopped: totals.planned + totals.unplanned,
         conflicts: complete.some(r => overlapError(r, data.records)),
       };
     }).sort((a, b) => ({worked:0, stopped:1, missing:2}[a.status] - {worked:0, stopped:1, missing:2}[b.status]) || a.name.localeCompare(b.name, 'fr', { numeric: true }));

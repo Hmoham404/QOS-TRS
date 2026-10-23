@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.print.PrintManager;
 import android.view.View;
 import android.webkit.*;
@@ -46,7 +47,7 @@ public final class MainActivity extends Activity {
     settings.setJavaScriptEnabled(true);settings.setDomStorageEnabled(true);
     settings.setAllowFileAccess(false);settings.setAllowContentAccess(true);
     settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-    settings.setUserAgentString(settings.getUserAgentString()+" QOSAndroid/1.0");
+    settings.setUserAgentString(settings.getUserAgentString()+" QOSAndroid/1.1");
     settings.setSupportMultipleWindows(false);
     CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);
     web.setWebViewClient(new WebViewClient(){
@@ -85,7 +86,7 @@ public final class MainActivity extends Activity {
             if(pendingExport!=null)throw new IllegalStateException("Terminez l’enregistrement précédent.");
             String content=data.getString("content");
             if(content.length()>10*1024*1024)throw new IllegalArgumentException("Export trop volumineux.");
-            pendingExport=content.getBytes(StandardCharsets.UTF_8);
+            pendingExport="base64".equals(data.optString("encoding"))?Base64.decode(content,Base64.DEFAULT):content.getBytes(StandardCharsets.UTF_8);
             Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE);
             String mime=data.optString("type","application/octet-stream").split(";")[0];
             intent.setType(mime.contains("/")?mime:"application/octet-stream");

@@ -65,6 +65,7 @@ export async function saveRecord(record) {
       let retry=record.updated_at?supabase.from('production_records').update(r).eq('id',r.id).eq('updated_at',record.updated_at):supabase.from('production_records').insert(r);
       ({data,error}=await retry.select());
     }
+    if(error?.code==='PGRST204' && /staffing_min|mold_breakdown_min|peripherals_min|material_shortage_min|quality_stop_min|power_cut_min|adjustment_min|other_loss_min/.test(error.message)) throw new Error('Exécutez supabase/06_loss_categories.sql dans SQL Editor. Le brouillon et ses pertes sont conservés.');
     if(error)throw new Error(error.code==='23505'?'Un relevé existe déjà pour cette date, ce poste, cette presse et cet article. Modifiez-le depuis l’historique.':error.code==='PGRST204'&&/planned_qty/.test(error.message)?'Exécutez supabase/05_planning_public_access.sql dans SQL Editor. Le brouillon et sa quantité planifiée sont conservés.':error.message);
     if(!data?.length)throw new Error('Ce relevé a été modifié par un autre utilisateur. Actualisez avant de réessayer.');
   } else {
@@ -93,7 +94,15 @@ export async function saveReference(table,item) {
 }
 export function download(name,content,type='application/json') {
   if(/QOSAndroid\//.test(navigator.userAgent)){
-    const result=window.prompt('QOS_NATIVE:'+JSON.stringify({action:'save',name,content:String(content),type}),'');
+    const binary=content instanceof ArrayBuffer || ArrayBuffer.isView(content);
+    let encoding='utf8',payload=String(content);
+    if(binary){
+      if(/QOSAndroid\/1\.0(?:\D|$)/.test(navigator.userAgent))throw new Error('Mettre à jour l’APK pour exporter un fichier Excel.');
+      const bytes=content instanceof ArrayBuffer?new Uint8Array(content):new Uint8Array(content.buffer,content.byteOffset,content.byteLength);
+      let raw='';for(let offset=0;offset<bytes.length;offset+=32768)raw+=String.fromCharCode(...bytes.subarray(offset,offset+32768));
+      payload=btoa(raw);encoding='base64';
+    }
+    const result=window.prompt('QOS_NATIVE:'+JSON.stringify({action:'save',name,content:payload,type,encoding}),'');
     if(result!=='ok')throw new Error('Le fichier n’a pas pu être préparé pour Android.');
     return;
   }

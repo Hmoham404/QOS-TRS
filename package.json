@@ -13,10 +13,17 @@
     "@fontsource/dm-sans": "^5.2.6",
     "@fontsource/manrope": "^5.2.6",
     "@supabase/supabase-js": "^2.57.4",
+    "exceljs": "^4.4.0",
     "lucide-react": "^0.468.0",
+    "motion": "^14.6.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "recharts": "^3.2.1"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

@@ -17,6 +17,8 @@ test('PWA mobile : manifeste, ressources hors ligne et brouillon après redémar
   await entry(page);
   await page.getByLabel('Quantité planifiée',{exact:true}).fill('7200');
   await page.getByLabel('Quantité conforme',{exact:true}).fill('6100');
+  await page.getByLabel("Manque d'effectif",{exact:true}).fill('12');
+  await page.getByLabel("Coupure d'énergie",{exact:true}).fill('8');
   await page.getByLabel('Commentaire du poste').fill('Brouillon hors ligne');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   expect(await page.getByLabel('Quantité planifiée',{exact:true}).evaluate(e=>getComputedStyle(e).fontSize)).toBe('16px');
@@ -26,6 +28,9 @@ test('PWA mobile : manifeste, ressources hors ligne et brouillon après redémar
   await fresh.goto('/');await expect(fresh.getByText('Hors connexion',{exact:true})).toBeVisible();
   await entry(fresh);
   await expect(fresh.getByLabel('Quantité planifiée',{exact:true})).toHaveValue('7200');
+  await expect(fresh.getByLabel("Manque d'effectif",{exact:true})).toHaveValue('12');
+  await expect(fresh.getByLabel("Coupure d'énergie",{exact:true})).toHaveValue('8');
+  await expect(fresh.locator('.machine-time')).toContainText('460,0');
   await expect(fresh.getByLabel('Commentaire du poste')).toHaveValue('Brouillon hors ligne');
   expect(errors).toEqual([]);
 });
@@ -67,4 +72,27 @@ test('APK : téléchargement du binaire avec le service worker actif',async({pag
   expect(bytes.subarray(0,2).toString()).toBe('PK');expect(bytes.length).toBeGreaterThan(10000);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:'.runtime/apk-download-mobile.png',fullPage:true});
+});
+
+test('Langue, département et export Excel restent fonctionnels hors connexion',async({page,context})=>{
+  await ready(page);
+  await page.getByRole('button',{name:'English (EN)',exact:true}).click();
+  await page.getByRole('button',{name:'Night mode',exact:true}).click();
+  await page.getByRole('button',{name:'Settings',exact:true}).click();
+  await context.setOffline(true);
+  const downloading=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Export Excel',exact:true}).click();
+  const download=await downloading;
+  const {readFile}=await import('node:fs/promises');
+  const {default:ExcelJS}=await import('exceljs');
+  const workbook=new ExcelJS.Workbook();await workbook.xlsx.load(await readFile(await download.path()));
+  expect(workbook.getWorksheet('Records').rowCount).toBe(64);
+  expect(workbook.getWorksheet('Summary').getCell('B7').result).toBe(219520);
+  await page.getByRole('button',{name:'Switch department',exact:true}).click();
+  await page.getByRole('button',{name:'Assembly',exact:true}).click();
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('lang','en');
+  await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
+  await expect(page.locator('h1')).toContainText('Assembly');
+  await expect(page.getByRole('heading',{name:'No data in this department'})).toBeVisible();
 });

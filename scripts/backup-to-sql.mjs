@@ -1,3 +1,4 @@
+import { EXTRA_LOSS_FIELDS, extraLossDefaults } from '../src/losses.js';
 import {readFileSync,writeFileSync,existsSync} from 'node:fs';
 import {validateRecord} from '../src/domain.js';
 const [input,output]=process.argv.slice(2);
@@ -12,9 +13,9 @@ for(const a of data.articles)if(!a.code?.trim()||!a.name?.trim()||!Number.isInte
 for(const p of data.presses)if(!p.name?.trim())throw new Error('Presse invalide.');
 const quote=v=>v==null?'NULL':typeof v==='boolean'?String(v):typeof v==='number'?(Number.isFinite(v)?String(v):(()=>{throw new Error('Nombre invalide');})()):"'"+(typeof v==='object'?JSON.stringify(v):String(v)).replaceAll("'","''")+"'";
 const definitions=[['presses',data.presses,['id','name','active']],['articles',data.articles,['id','code','name','cavities','mold_cycle_seconds','standard_seconds','active']],['production_records',data.records,['id','date','shift','press_id','article_id','opening_min','planned_min','breakdown_min','startup_min','changeover_min','good_qty','startup_rejects','production_rejects','labor_hours','cycle_seconds','standard_seconds','notes','source','source_row']]];
-definitions[2][1]=data.records.map(r=>({...r,planned_qty:r.planned_qty??null,shift_start:r.shift_start??null,timeline_complete:!!r.timeline_complete,stop_events:r.stop_events||[]}));
-definitions[2][2].push('shift_start','timeline_complete','stop_events','planned_qty');
-const lines=['-- Reprise à exécuter en tant que propriétaire dans SQL Editor, après 01_schema.sql, 03_stop_journal.sql, 04_daily_review.sql et 05_planning_public_access.sql.','-- Les lignes déjà présentes sont conservées. Préférer une base neuve pour une reprise exacte.','-- Le trigger est suspendu uniquement dans cette transaction pour conserver les instantanés historiques et les références archivées.','begin;','alter table public.production_records disable trigger prepare_production_record;'];
+definitions[2][1]=data.records.map(r=>({...extraLossDefaults(),...r,planned_qty:r.planned_qty??null,shift_start:r.shift_start??null,timeline_complete:!!r.timeline_complete,stop_events:r.stop_events||[]}));
+definitions[2][2].push(...EXTRA_LOSS_FIELDS,'shift_start','timeline_complete','stop_events','planned_qty');
+const lines=['-- Reprise à exécuter en tant que propriétaire dans SQL Editor, après 01_schema.sql, 03_stop_journal.sql, 04_daily_review.sql 05_planning_public_access.sql et 06_loss_categories.sql.','-- Les lignes déjà présentes sont conservées. Préférer une base neuve pour une reprise exacte.','-- Le trigger est suspendu uniquement dans cette transaction pour conserver les instantanés historiques et les références archivées.','begin;','alter table public.production_records disable trigger prepare_production_record;'];
 for(const [table,items,keys] of definitions){if(items.length)lines.push(`insert into public.${table} (${keys.join(',')}) values\n${items.map(item=>'('+keys.map(k=>quote(item[k])).join(',')+')').join(',\n')}\non conflict do nothing;`);}
 lines.push('alter table public.production_records enable trigger prepare_production_record;','commit;');
 writeFileSync(output,lines.join('\n\n'),'utf8');console.log(`Reprise créée : ${data.records.length} relevés → ${output}`);

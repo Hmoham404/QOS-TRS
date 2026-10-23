@@ -11,7 +11,7 @@ test('Vue bleu-vert : bilan réel sans horaires, interaction et affichage mobile
  await expect(overview.locator('.overview-stat.production strong')).toContainText('5 800');
  await expect(page.locator('.timeline-placeholder')).toHaveCount(0);
  expect(await overview.locator('.overview-grid').evaluate(e=>getComputedStyle(e).display)).toBe('grid');
- await overview.getByRole('button',{name:'Démarrage / réglage 25,0 min',exact:true}).click();
+ await overview.getByRole('button',{name:'Démarrage / arrêt 25,0 min',exact:true}).click();
  await expect(overview.locator('.overview-selection')).toContainText('5,2 %');
  await page.locator('.analysis-01').screenshot({path:'.runtime/vision-card-desktop.png'});
  await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:'.runtime/vision-top-desktop.png'});
