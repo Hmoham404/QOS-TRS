@@ -75,7 +75,7 @@ body{background:var(--canvas);color:var(--text)}::selection{background:#22ac8d35
 :root[data-theme=dark] .curves-kpi.curves-kpi-trs{background:linear-gradient(135deg,#124b4c,#146658);border-color:#28776a}
 :root[data-theme=dark] :is(.hero-kpi .hero-number,.hero-kpi .kpi-label,.daily-hero h2){color:#f2fff9}
 :root[data-theme=dark] .daily-hero{background:linear-gradient(110deg,#14384c,#164943);border:1px solid #2c5a58}
-:root[data-theme=dark] .daily-date-control input{color:var(--text);background:transparent}
+:root[data-theme=dark] .daily-toolbar .daily-date-control input{color:var(--text);background:transparent}
 :root[data-theme=dark] :is(.daily-yesterday.selected,.tabs button.active,.segmented .selected,.curves-display-switch button[aria-pressed=true]){background:#215046;color:#a3efd4;border-color:#306b5d}
 :root[data-theme=dark] :is(.segmented,.curves-display-switch){background:var(--canvas);border-color:var(--line)}
 :root[data-theme=dark] :is(.segmented button,.curves-display-switch button){color:var(--text-secondary)}

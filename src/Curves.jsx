@@ -1,3 +1,5 @@
+import { useDepartmentText } from "./DepartmentContext.jsx";
+import { departmentConfig, targetForRows } from "./departments.js";
 import ChartPointValue from "./ChartPointValue";
 import { getLocale, t as translate } from "./i18n.js";
 import React, { useMemo, useState } from "react";
@@ -101,6 +103,9 @@ export default function Curves({
   target,
   press
 }) {
+  const translate = useDepartmentText();
+  if (data.department !== 'injection') target = targetForRows(rows, 'trs', target);
+  const dleTarget = targetForRows(rows, 'dle', departmentConfig(data.department).dle);
   const [chartMode, setChartMode] = useState("line");
   const [machinePress, setMachinePress] = useState("all");
   const totals = useMemo(() => aggregate(rows), [rows]);
@@ -167,7 +172,7 @@ export default function Curves({
           key: "dle",
           name: translate("DLE"),
           color: "#2b7f91"
-        }]} mode={chartMode}>{translate(" Somme des heures acquises / somme des heures dépensées. Sans heures dépensées, le DLE est non calculable. ")}</ChartPanel>
+        }]} target={dleTarget} mode={chartMode}>{translate(" Somme des heures acquises / somme des heures dépensées. Sans heures dépensées, le DLE est non calculable. ")}</ChartPanel>
         <ChartPanel title={translate("TRS par machine")} subtitle={translate("COMPARAISON DES PRESSES")} className="curves-machines" days={machineDays} lines={machineLines} target={target} mode={chartMode} action={<label className="curves-machine-filter"><span>{translate("Presse")}</span><select aria-label={translate("Presse du graphique TRS par machine")} value={selectedMachine} onChange={event => setMachinePress(event.target.value)}><option value="all">{translate("Toutes les presses")}</option>{pressOptions.map(machine => <option key={machine.id} value={machine.id}>{machine.name}</option>)}</select></label>}>{translate(" Une série par presse renseignée. Le choix de presse dans ce graphique s’applique uniquement à cette comparaison. ")}</ChartPanel>
         <section className="panel curves-panel" aria-label={translate("Taux de respect du planning")}>
           <div className="panel-heading"><div><span className="eyebrow">{translate("PRODUCTION & ENGAGEMENT")}</span><h2>{translate("Taux de respect du planning")}</h2></div></div>

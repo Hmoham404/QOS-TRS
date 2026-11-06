@@ -1,5 +1,6 @@
 import { aggregate, SHIFTS, today } from './domain.js';
-import { timelineSegments, STOP_TYPES, validateTimeline } from './analytics.js';
+import { stopTypesFor } from './losses.js';
+import { timelineSegments, validateTimeline } from './analytics.js';
 
 // Calendar dates are workshop-local dates. UTC is only used for date arithmetic.
 export function shiftDate(date, days) {
@@ -63,6 +64,7 @@ export function dailyTimeline(records) {
 }
 export function dailyStops(records) {
   return records.flatMap(r => {
+    const STOP_TYPES = stopTypesFor(r.department);
     if (r.timeline_complete && !validateTimeline(r).length) return r.stop_events.map((e, index) => ({ ...e, key: r.id + ':' + index, record: r, minutes: e.end_min - e.start_min, timed: true, label: e.cause.trim() || STOP_TYPES[e.category].label }));
     return Object.entries(STOP_TYPES).filter(([, t]) => Number(r[t.field]) > 0).map(([category, t]) => ({ key: r.id + ':' + category, category, record: r, minutes: Number(r[t.field]), timed: false, label: t.label }));
   }).sort((a, b) => SHIFTS.indexOf(a.record.shift) - SHIFTS.indexOf(b.record.shift) || (a.start_min ?? 0) - (b.start_min ?? 0));

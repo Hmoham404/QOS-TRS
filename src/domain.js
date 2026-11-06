@@ -1,5 +1,6 @@
-import { EXTRA_LOSS_FIELDS, unplannedMinutes, UNPLANNED_TYPES } from './losses.js';
+import { EXTRA_LOSS_FIELDS, unplannedMinutes, UNPLANNED_TYPES, unplannedTypesFor } from './losses.js';
 import { validateTimeline } from './analytics.js';
+import { DEPARTMENT_IDS } from './departments.js';
 import { getLocale } from './i18n.js';
 export const SHIFTS = ['Matin', 'Après-Midi', 'Nuit'];
 export const numericFields = [...EXTRA_LOSS_FIELDS, 'opening_min', 'planned_min', 'breakdown_min', 'startup_min', 'changeover_min', 'good_qty', 'startup_rejects', 'production_rejects', 'labor_hours'];
@@ -67,6 +68,11 @@ export function aggregate(rows) {
 }
 export function validateRecord(r) {
   const errors = [];
+  if (r.department != null && !DEPARTMENT_IDS.includes(r.department)) errors.push('Département inconnu.');
+  if (r.department && r.department !== 'injection') {
+    const allowed = new Set(unplannedTypesFor(r.department).map(([, type]) => type.field));
+    if (UNPLANNED_TYPES.some(([, type]) => !allowed.has(type.field) && Number(r[type.field] ?? 0) !== 0)) errors.push('Cette cause de perte ne concerne pas ce département.');
+  }
   if (r.planned_qty != null && (!Number.isInteger(r.planned_qty) || r.planned_qty < 0 || r.planned_qty > 2147483647)) errors.push('La quantité planifiée doit être un entier positif ou nul, au maximum 2 147 483 647.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(r.date) || Number.isNaN(Date.parse(r.date)) || new Date(r.date).toISOString().slice(0, 10) !== r.date) errors.push('Choisissez une date valide.');
   if (!SHIFTS.includes(r.shift)) errors.push('Choisissez un poste.');

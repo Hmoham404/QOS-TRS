@@ -20,6 +20,7 @@ import "./pwa.css";
 import "./workspace.css";
 import "./refinement.css";
 import "./theme.css";
+import "./departments.css";
 import "./theme.js";
 import { startPwa } from "./pwa";
 startPwa();

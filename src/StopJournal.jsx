@@ -2,13 +2,15 @@ import { t as translate } from "./i18n.js";
 import React, { useState } from "react";
 import StopTimeInput from "./StopTimeInput";
 import { Plus, Trash2, Timer, Info } from "lucide-react";
-import { STOP_TYPES, clockLabel, stopTotals, defaultStart } from "./analytics";
+import { stopTypesFor } from "./losses.js";
+import { clockLabel, stopTotals, defaultStart } from "./analytics";
 import { formatNumber as num } from "./domain";
 export default function StopJournal({
   record,
   onChange,
   disabled
 }) {
+  const STOP_TYPES = stopTypesFor(record.department);
   const [timeMode, setTimeMode] = useState("clock");
   const enabled = Boolean(record.timeline_complete),
     events = record.stop_events || [];
@@ -46,7 +48,7 @@ export default function StopJournal({
             id: crypto.randomUUID(),
             start_min: start,
             end_min: Math.min(start + 10, Number(record.opening_min)),
-            category: "breakdown",
+            category: record.department === "metallization" ? "mold" : "breakdown",
             cause: ""
           }]);
         }}><Plus size={16} />{translate("Ajouter un arrêt")}</button></> : <p className="journal-empty">{translate("Les totaux suffisent au Pareto et à la comparaison des postes. Activez le journal pour afficher les arrêts sur la courbe horaire.")}</p>}</div></section>;

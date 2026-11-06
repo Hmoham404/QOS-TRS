@@ -1,3 +1,4 @@
+import { departmentConfig } from '../src/departments.js';
 import { EXTRA_LOSS_FIELDS, extraLossDefaults } from '../src/losses.js';
 import {readFileSync,writeFileSync,existsSync} from 'node:fs';
 import {validateRecord} from '../src/domain.js';
@@ -6,6 +7,8 @@ if(!input||!output){console.error('Usage: node scripts/backup-to-sql.mjs sauvega
 if(existsSync(output)){console.error('Le fichier de sortie existe déjà. Choisissez un nouveau nom.');process.exit(1);}
 const data=JSON.parse(readFileSync(input,'utf8'));
 if(data.version!==1||!['presses','articles','records'].every(k=>Array.isArray(data[k])))throw new Error('Format de sauvegarde invalide.');
+const department=data.department||'injection';departmentConfig(department);
+for(const group of ['presses','articles','records'])for(const item of data[group])if(item.department&&item.department!==department)throw new Error('La sauvegarde mélange plusieurs départements.');
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 for(const group of ['presses','articles','records'])for(const item of data[group])if(!uuid.test(item.id))throw new Error('Identifiant invalide.');
 for(const r of data.records){const errors=validateRecord(r);if(errors.length)throw new Error(`${r.id}: ${errors.join(' ')}`);if(!data.presses.some(p=>p.id===r.press_id)||!data.articles.some(a=>a.id===r.article_id))throw new Error('Référence absente.');}
@@ -15,7 +18,14 @@ const quote=v=>v==null?'NULL':typeof v==='boolean'?String(v):typeof v==='number'
 const definitions=[['presses',data.presses,['id','name','active']],['articles',data.articles,['id','code','name','cavities','mold_cycle_seconds','standard_seconds','active']],['production_records',data.records,['id','date','shift','press_id','article_id','opening_min','planned_min','breakdown_min','startup_min','changeover_min','good_qty','startup_rejects','production_rejects','labor_hours','cycle_seconds','standard_seconds','notes','source','source_row']]];
 definitions[2][1]=data.records.map(r=>({...extraLossDefaults(),...r,planned_qty:r.planned_qty??null,shift_start:r.shift_start??null,timeline_complete:!!r.timeline_complete,stop_events:r.stop_events||[]}));
 definitions[2][2].push(...EXTRA_LOSS_FIELDS,'shift_start','timeline_complete','stop_events','planned_qty');
-const lines=['-- Reprise à exécuter en tant que propriétaire dans SQL Editor, après 01_schema.sql, 03_stop_journal.sql, 04_daily_review.sql 05_planning_public_access.sql et 06_loss_categories.sql.','-- Les lignes déjà présentes sont conservées. Préférer une base neuve pour une reprise exacte.','-- Le trigger est suspendu uniquement dans cette transaction pour conserver les instantanés historiques et les références archivées.','begin;','alter table public.production_records disable trigger prepare_production_record;'];
+if(department!=='injection') {
+  for(const definition of definitions) {
+    definition[1]=definition[1].map(item=>({...item,department}));
+    definition[2].push('department');
+  }
+  for(const index of [1,2])definitions[index][2].push('standard_operators','trs_target','dle_target');
+}
+const lines=[...(department!=='injection'?['-- Appliquer aussi 07_departments.sql avant cette reprise.']:[]),'-- Reprise à exécuter en tant que propriétaire dans SQL Editor, après 01_schema.sql, 03_stop_journal.sql, 04_daily_review.sql 05_planning_public_access.sql et 06_loss_categories.sql.','-- Les lignes déjà présentes sont conservées. Préférer une base neuve pour une reprise exacte.','-- Le trigger est suspendu uniquement dans cette transaction pour conserver les instantanés historiques et les références archivées.','begin;','alter table public.production_records disable trigger prepare_production_record;'];
 for(const [table,items,keys] of definitions){if(items.length)lines.push(`insert into public.${table} (${keys.join(',')}) values\n${items.map(item=>'('+keys.map(k=>quote(item[k])).join(',')+')').join(',\n')}\non conflict do nothing;`);}
 lines.push('alter table public.production_records enable trigger prepare_production_record;','commit;');
 writeFileSync(output,lines.join('\n\n'),'utf8');console.log(`Reprise créée : ${data.records.length} relevés → ${output}`);

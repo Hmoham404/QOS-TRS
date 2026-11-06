@@ -22,3 +22,20 @@ export const UNPLANNED_TYPES = Object.entries(STOP_TYPES).filter(([key]) => key 
 export const EXTRA_LOSS_FIELDS = UNPLANNED_TYPES.map(([, type]) => type.field).filter(field => !['breakdown_min', 'startup_min', 'changeover_min'].includes(field));
 export const extraLossDefaults = () => Object.fromEntries(EXTRA_LOSS_FIELDS.map(field => [field, 0]));
 export const unplannedMinutes = row => UNPLANNED_TYPES.reduce((sum, [, type]) => sum + (Number(row[type.field]) || 0), 0);
+
+// Stable fields retain compatibility with the existing SQL calculations.
+// mold_breakdown_min = Vaccum in Metallisation; peripherals_min = paint line / oven.
+export function stopTypesFor(department = 'injection') {
+  if (department === 'injection') return STOP_TYPES;
+  const overrides = department === 'metallization'
+    ? { mold: 'Panne Vaccum', peripherals: 'Panne ligne de peinture', changeover: 'Changement de référence' }
+    : { peripherals: 'Panne four', changeover: 'Changement de référence' };
+  const keys = department === 'metallization'
+    ? ['staffing','mold','peripherals','quality_stop','material','power','adjustment','startup','changeover','other','planned']
+    : ['staffing','breakdown',...(department === 'screen-printing' ? ['peripherals'] : []),'quality_stop','material','power','adjustment','startup','changeover','other','planned'];
+  return Object.fromEntries(keys.map(key => {
+    const source = overrides[key] ?? STOP_TYPES[key].source;
+    return [key, { ...STOP_TYPES[key], source, get label() { return translate(source); } }];
+  }));
+}
+export const unplannedTypesFor = department => Object.entries(stopTypesFor(department)).filter(([key]) => key !== 'planned');

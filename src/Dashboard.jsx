@@ -1,5 +1,7 @@
+import { useDepartmentText } from "./DepartmentContext.jsx";
+import { departmentConfig, targetForRows } from "./departments.js";
 import ChartPointValue from "./ChartPointValue";
-import { UNPLANNED_TYPES } from "./losses.js";
+import { unplannedTypesFor } from "./losses.js";
 import { t as translate } from "./i18n.js";
 import React, { useState } from "react";
 import { Activity, Clock3, Gauge, ShieldCheck, ArrowUpRight, Factory, Download, AlertTriangle, Target, Layers3, BarChart3, ChevronRight } from "lucide-react";
@@ -58,7 +60,12 @@ export default function Dashboard({
   onExport,
   onEdit
 }) {
+  const translate = useDepartmentText();
+  if (data.department !== 'injection') target = targetForRows(rows, 'trs', target);
+  const dleTarget = targetForRows(rows, 'dle', departmentConfig(data.department).dle);
   const [metric, setMetric] = useState("trs");
+  const chartTarget = metric === "trs" ? target : metric === "dle" ? dleTarget : null;
+  const UNPLANNED_TYPES = unplannedTypesFor(data.department);
   const s = aggregate(rows);
   const days = [...new Set(rows.map(r => r.date))].sort().map(date => {
     const a = aggregate(rows.filter(r => r.date === date));
@@ -98,7 +105,7 @@ export default function Dashboard({
     {!rows.length ? <section className="panel"><Empty><button className="btn primary" onClick={onNew}>{translate("Saisir la production")}</button></Empty></section> : <>
     <div className="chart-grid"><section className="panel trend-panel"><div className="panel-heading"><div><span className="eyebrow">{translate("ÉVOLUTION DE L’ATELIER")}</span><h2>{translate("La performance au fil des jours")}</h2></div><select aria-label={translate("Indicateur du graphique")} value={metric} onChange={e => setMetric(e.target.value)}>{Object.entries(series).map(([k, v]) => <option key={k} value={k}>{translate(v.label)}</option>)}</select></div><div className="chart-legend"><span><i style={{
                 background: series[metric].color
-              }} />{translate(series[metric].label)}</span>{metric === "trs" && <span><i className="dashed" />{translate("Objectif ")}{num(target * 100)} %</span>}<span className="chart-unit">{translate("en %")}</span></div><div className="trend-chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={days} margin={{
+              }} />{translate(series[metric].label)}</span>{chartTarget != null && <span><i className="dashed" />{translate("Objectif ")}{num(chartTarget * 100)} %</span>}<span className="chart-unit">{translate("en %")}</span></div><div className="trend-chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={days} margin={{
                 top: 34,
                 right: 30,
                 bottom: 0,
@@ -109,7 +116,7 @@ export default function Dashboard({
                 }} dy={10} /><YAxis domain={[0, "auto"]} tickFormatter={v => v + " %"} axisLine={false} tickLine={false} tick={{
                   fill: "#839098",
                   fontSize: 12
-                }} /><Tooltip content={<Tip />} />{metric === "trs" && <ReferenceLine y={target * 100} stroke="#b7aa8b" strokeDasharray="5 5" />}<Area isAnimationActive={false} type="monotone" dataKey={metric} name={series[metric].label} stroke={series[metric].color} strokeWidth={3} fill="url(#trendFill)" dot={{
+                }} /><Tooltip content={<Tip />} />{chartTarget != null && <ReferenceLine y={chartTarget * 100} stroke="#b7aa8b" strokeDasharray="5 5" />}<Area isAnimationActive={false} type="monotone" dataKey={metric} name={series[metric].label} stroke={series[metric].color} strokeWidth={3} fill="url(#trendFill)" dot={{
                   r: 4,
                   fill: "white",
                   strokeWidth: 2

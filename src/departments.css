@@ -1,0 +1,167 @@
+/* Department identity is independent of day/night and of KPI status colors. */
+.app {
+  --dept-ink: #076e61;
+  --dept-bright: #91e7d2;
+  --dept-soft: #e8f5f1;
+  --dept-border: #b8dfd4;
+  --dept-sidebar: #10343a;
+  --dept-sidebar-deep: #0c252e;
+  --dept-hero: #12594f;
+  --dept-canvas: #f5f7fa;
+}
+[data-department=injection] {
+  --dept-ink: #076e61; --dept-bright: #91e7d2; --dept-soft: #e8f5f1; --dept-border: #b8dfd4;
+  --dept-sidebar: #10343a; --dept-sidebar-deep: #0c252e; --dept-hero: #12594f; --dept-canvas: #f5f7fa;
+}
+[data-department=assembly] {
+  --dept-ink: #3055b0; --dept-bright: #b6caff; --dept-soft: #edf1fc; --dept-border: #c6d2f0;
+  --dept-sidebar: #1c3059; --dept-sidebar-deep: #111d38; --dept-hero: #304f91; --dept-canvas: #f5f7fc;
+}
+[data-department=metallization] {
+  --dept-ink: #356279; --dept-bright: #b9e6f4; --dept-soft: #eaf2f6; --dept-border: #c3d5df;
+  --dept-sidebar: #263b49; --dept-sidebar-deep: #111d27; --dept-hero: #3f6477; --dept-canvas: #f2f5f7;
+}
+[data-department=screen-printing] {
+  --dept-ink: #91406d; --dept-bright: #f4bbd9; --dept-soft: #f9edf4; --dept-border: #e8c7da;
+  --dept-sidebar: #492b41; --dept-sidebar-deep: #291b2b; --dept-hero: #763957; --dept-canvas: #faf6f9;
+}
+[data-department=welding] {
+  --dept-ink: #806000; --dept-bright: #ffe17a; --dept-soft: #fff7d9; --dept-border: #e8d58f;
+  --dept-sidebar: #423a20; --dept-sidebar-deep: #242313; --dept-hero: #75601e; --dept-canvas: #fcfaf2;
+}
+.app[data-department] {
+  --dept-accent: var(--dept-ink);
+  --accent: var(--dept-accent);
+  --accent-soft: var(--dept-soft);
+  --focus: var(--dept-accent);
+  --canvas: var(--dept-canvas);
+  background: var(--dept-canvas);
+}
+:root[data-theme=dark] [data-department=injection] {--dept-soft:#153b35;--dept-border:#30675b;--dept-canvas:#0b171b}
+:root[data-theme=dark] [data-department=assembly] {--dept-soft:#192f4d;--dept-border:#355a86;--dept-canvas:#0c1523}
+:root[data-theme=dark] [data-department=metallization] {--dept-soft:#203541;--dept-border:#426375;--dept-canvas:#101a22}
+:root[data-theme=dark] [data-department=screen-printing] {--dept-soft:#392638;--dept-border:#75516a;--dept-canvas:#1c141e}
+:root[data-theme=dark] [data-department=welding] {--dept-soft:#37331b;--dept-border:#75672e;--dept-canvas:#1b1a12}
+:root[data-theme=dark] .app[data-department] {--dept-accent:var(--dept-bright)}
+
+.app[data-department] :is(.main,.content) {background:var(--dept-canvas)}
+.app[data-department] .sidebar {
+  background:linear-gradient(175deg,var(--dept-sidebar),var(--dept-sidebar-deep));
+  border-inline-end:1px solid color-mix(in srgb,var(--dept-bright) 20%,transparent);
+}
+.app[data-department] .brand-mark {
+  background:var(--dept-bright); color:var(--dept-sidebar-deep); box-shadow:none;
+}
+.app[data-department] :is(.workspace-icon,.department-empty-mark) {
+  color:var(--dept-accent);background:var(--dept-soft);border-color:var(--dept-border);
+}
+.app[data-department] .sidebar .workspace-icon {
+  background:color-mix(in srgb,var(--dept-bright) 14%,transparent);color:var(--dept-bright);
+}
+.app[data-department] .department-trigger {
+  background:color-mix(in srgb,var(--dept-bright) 6%,transparent);
+  border-color:color-mix(in srgb,var(--dept-bright) 25%,transparent);
+}
+.app[data-department] .sidebar nav button.active {
+  color:var(--dept-bright);
+  background:color-mix(in srgb,var(--dept-bright) 15%,transparent);
+  box-shadow:inset 3px 0 var(--dept-bright);
+}
+[dir=rtl] .app[data-department] .sidebar nav button.active {box-shadow:inset -3px 0 var(--dept-bright)}
+.app[data-department] .nav-active {background:var(--dept-bright)}
+.app[data-department] .sidebar :is(.tiny-symbol,.brand-dot) {color:var(--dept-bright)}
+.app[data-department] .mini-bars span {background:var(--dept-bright)}
+.app[data-department] .sidebar-insight {
+  background:color-mix(in srgb,var(--dept-bright) 5%,transparent);
+  border-color:color-mix(in srgb,var(--dept-bright) 15%,transparent);
+}
+.app[data-department] .department-options {background:var(--dept-sidebar-deep);border-color:color-mix(in srgb,var(--dept-bright) 25%,transparent)}
+.app[data-department] .department-options button {color:#e0e8f0}
+.app[data-department] .department-options button>svg:first-child {
+  color:var(--dept-bright);padding:5px;box-sizing:content-box;border-radius:7px;
+  background:color-mix(in srgb,var(--dept-bright) 12%,transparent);
+}
+.app[data-department] .department-options button[aria-pressed=true] {
+  color:var(--dept-bright);background:color-mix(in srgb,var(--dept-bright) 14%,transparent);
+}
+.app[data-department] .department-options button:hover {background:color-mix(in srgb,var(--dept-bright) 9%,transparent)}
+.app[data-department] .topbar {border-block-start:3px solid var(--dept-accent)}
+.app[data-department] :is(.heading-dot,.brand-dot,.summary-trs,.draft-status) {color:var(--dept-accent)}
+.department-identity {
+  display:inline-flex;align-items:center;gap:6px;padding:5px 9px;margin-block-end:10px;
+  color:var(--dept-accent);background:var(--dept-soft);border:1px solid var(--dept-border);
+  border-radius:6px;font-size:11px;font-weight:750;letter-spacing:.2px;line-height:1.4;
+}
+.app[data-department] :is(.btn.primary,.save-button) {
+  background:var(--dept-ink);border-color:var(--dept-ink);color:#fff;box-shadow:none;
+}
+.app[data-department] :is(.btn.primary,.save-button):hover {background:color-mix(in srgb,var(--dept-ink) 88%,black);border-color:var(--dept-ink)}
+.app[data-department] .excel-export .btn:not(.primary) {
+  color:var(--dept-accent);background:var(--dept-soft);border-color:var(--dept-border);
+}
+.app[data-department] :is(.text-button,.daily-fleet a) {color:var(--dept-accent)}
+.app[data-department] :is(.tabs button.selected,.segmented button.selected,.daily-yesterday.selected,.journal-time-mode button.selected,.curves-display-switch button[aria-pressed=true]) {
+  color:var(--dept-accent);background:var(--dept-soft);border-color:var(--dept-border);
+}
+.app[data-department] :is(.theme-switcher button[aria-pressed=true],.theme-switcher button:focus-visible) {color:var(--dept-accent)}
+.app[data-department] :is(input,select,textarea,button):focus-visible {outline-color:var(--dept-accent)}
+.app[data-department] :is(input,select,textarea):focus {border-color:var(--dept-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--dept-accent) 14%,transparent)}
+.app[data-department] input[type=checkbox] {accent-color:var(--dept-ink)}
+.app[data-department] :is(.reference-icon,.strip-icon,.section-icon,.daily-machine-icon) {color:var(--dept-accent)}
+.app[data-department] :is(.reference-icon,.strip-icon) {background:var(--dept-soft);border-color:var(--dept-border)}
+.app[data-department] .avatar.light {color:var(--dept-accent);background:var(--dept-soft)}
+.app[data-department] :is(.auto-field,.machine-time) {background:var(--dept-soft);border-color:var(--dept-border)}
+.app[data-department] :is(.auto-field strong,.machine-time strong) {color:var(--dept-accent)}
+.app[data-department] :is(.daily-hero,.hero-kpi,.curves-kpi.curves-kpi-trs) {
+  background:linear-gradient(115deg,var(--dept-sidebar),var(--dept-hero));
+  border-color:var(--dept-hero);color:#fff;
+}
+.app[data-department] :is(.daily-hero h2,.hero-kpi .hero-number,.hero-kpi .kpi-label,.curves-kpi-trs>strong) {color:#fff}
+.app[data-department] :is(.daily-hero h2>span,.daily-hero-value strong,.hero-bottom,.daily-hero .eyebrow,.daily-hero-value>span,.curves-kpi-trs>small) {color:var(--dept-bright)}
+.app[data-department] .daily-hero :is(p,.daily-hero-posts span) {color:#e2eaf2}
+.app[data-department] .daily-hero-posts .worked {background:color-mix(in srgb,var(--dept-bright) 15%,transparent);border-color:color-mix(in srgb,var(--dept-bright) 35%,transparent);color:var(--dept-bright)}
+.app[data-department] .daily-press-head {border-top-color:var(--dept-accent)}
+.app[data-department] .hero-kpi .kpi-track>span {background:var(--dept-bright)}
+/* A shared industrial signature: engraved emblems, fine edges, quiet surfaces. */
+.app[data-department] .sidebar {
+  background:radial-gradient(ellipse at 0 0,color-mix(in srgb,var(--dept-bright) 12%,transparent),transparent 60%),linear-gradient(165deg,var(--dept-sidebar),var(--dept-sidebar-deep));
+}
+.app[data-department] .department-trigger {padding:14px 10px;border-radius:14px;gap:10px;box-shadow:0 6px 18px #00000012,inset 0 1px #ffffff0c}
+.app[data-department] .sidebar .department-logo {
+  width:44px;height:48px;flex:0 0 44px;border-radius:11px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--dept-bright) 24%,transparent),color-mix(in srgb,var(--dept-bright) 6%,transparent));
+  border:1px solid color-mix(in srgb,var(--dept-bright) 32%,transparent);
+  box-shadow:inset 0 1px #ffffff18,0 4px 10px #00000014;
+}
+.app[data-department] .department-options button>svg:first-child {width:25px;height:25px;padding:7px;border:1px solid color-mix(in srgb,var(--dept-bright) 18%,transparent);border-radius:10px}
+.app[data-department] .department-options button {gap:10px;padding-block:9px}
+.app[data-department] .department-identity {gap:9px;padding:6px 12px 6px 7px;border-radius:9px;letter-spacing:.35px}
+.department-identity svg {width:26px;height:26px;flex-shrink:0;padding:3px;box-sizing:content-box;border-inline-end:1px solid var(--dept-border);padding-inline-end:9px}
+.app[data-department] .page-heading {padding-block:8px 20px}
+.app[data-department] :is(.daily-hero,.hero-kpi,.curves-kpi.curves-kpi-trs) {
+  background:radial-gradient(ellipse at 100% 0,color-mix(in srgb,var(--dept-bright) 18%,transparent),transparent 65%),linear-gradient(120deg,var(--dept-sidebar-deep),var(--dept-hero));
+  box-shadow:inset 0 1px #ffffff18,0 10px 24px color-mix(in srgb,var(--dept-sidebar-deep) 12%,transparent);
+}
+.app[data-department=metallization] .sidebar .department-logo {
+  color:#e4f7ff;border-color:#a8c4d35e;
+  background:linear-gradient(135deg,#98afbe35 0%,#dbeef64a 25%,#506b7d26 47%,#c0d9e73b 70%,#37516230 100%);
+}
+.app[data-department=metallization] .topbar {border-block-start-color:#829fab}
+.app[data-department=metallization] :is(.daily-hero,.hero-kpi,.curves-kpi.curves-kpi-trs) {
+  background:linear-gradient(115deg,#192a36 0%,#304b5a 43%,#496a7b 70%,#2b4657 100%);
+  border-color:#829fac66;
+}
+.app[data-department=metallization] .btn.primary {background:linear-gradient(120deg,#2d5369,#406c81);border-color:#426c80;box-shadow:inset 0 1px #ffffff24,0 3px 8px #172d3b14}
+.app[data-department=metallization] .btn.primary:hover {background:#294e62}
+.app[data-department=welding] :is(.btn.primary,.save-button) {background:#f5cf4a;border-color:#caa327;color:#342b12}
+.app[data-department=welding] :is(.btn.primary,.save-button):hover {background:#ffdf6c;border-color:#caa327}
+.app[data-department] .department-empty-mark {width:84px;height:84px;border-radius:22px;box-shadow:inset 0 1px #ffffff22}
+@media(max-width:760px) {
+  .app[data-department] .department-identity{font-size:10px;margin-block-end:8px;padding:4px 9px 4px 5px}
+  .department-identity svg{width:22px;height:22px}
+  .app[data-department] .page-heading {padding-block:2px 12px}
+}
+@media print {
+  .app[data-department] {--dept-canvas:#fff;--dept-accent:var(--dept-ink);--dept-soft:#f3f5f7}
+  .department-identity {background:#fff;border-color:currentColor}
+}

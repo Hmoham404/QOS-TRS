@@ -1,10 +1,10 @@
-import { EXTRA_LOSS_FIELDS, STOP_TYPES } from "./losses.js";
+import { exportColumns, exportDepartmentName } from "./export-columns.js";
 import { aggregate, calculate } from './domain.js';
 import { getLanguage, t as translate } from './i18n.js';
-const HEADERS = ['Date', 'Poste', 'Presse', 'Code moule', 'Article', 'Ouverture (min)', 'Arrêts planifiés (min)', 'Temps requis (min)', 'Panne machine (min)', 'Démarrage/arrêt (min)', 'Changement moule (min)', 'Temps machine (min)', 'Quantité totale', 'Conformes', 'Rebuts démarrage', 'Rebuts production', 'Cycle (s/pièce)', 'Disponibilité (%)', 'Performance (%)', 'Qualité (%)', 'TRS (%)', 'Standard (s)', 'Heures dépensées', 'Recette (h)', 'DLE (%)', 'Commentaire', 'Début du relevé', 'Journal complet', 'Arrêts horodatés (JSON)', 'Quantité planifiée', ...EXTRA_LOSS_FIELDS.map(field => Object.values(STOP_TYPES).find(type => type.field === field).source + ' (min)')];
 export async function buildExcelExport(rows, data, {
-  department = 'Injection'
+  department = exportDepartmentName(data)
 } = {}) {
+  const { headers, extras, primaryBreakdown } = exportColumns(data.department);
   const {
     default: ExcelJS
   } = await import('exceljs');
@@ -26,7 +26,7 @@ export async function buildExcelExport(rows, data, {
   });
   const presses = new Map(data.presses.map(item => [item.id, item]));
   const articles = new Map(data.articles.map(item => [item.id, item]));
-  details.columns = HEADERS.map((header, index) => ({
+  details.columns = headers.map((header, index) => ({
     header: translate(header),
     width: [4, 25, 28].includes(index) ? 35 : index === 0 ? 15 : 22
   }));
@@ -34,15 +34,20 @@ export async function buildExcelExport(rows, data, {
   for (const row of sorted) {
     const c = calculate(row),
       article = articles.get(row.article_id);
-    details.addRow([new Date(row.date + 'T00:00:00Z'), translate(row.shift), presses.get(row.press_id)?.name ?? '', article?.code ?? '', article?.name ?? '', row.opening_min, row.planned_min, c.required, row.breakdown_min, row.startup_min, row.changeover_min, c.runtime, c.total, row.good_qty, row.startup_rejects, row.production_rejects, row.cycle_seconds, c.availability, c.performance, c.quality, c.trs, row.standard_seconds, row.labor_hours, c.earned, c.dle, row.notes ?? '', row.shift_start ?? '', translate(row.timeline_complete ? 'Oui' : 'Non'), JSON.stringify(row.stop_events ?? []), row.planned_qty ?? null, ...EXTRA_LOSS_FIELDS.map(field => row[field] ?? 0)]);
+    details.addRow([new Date(row.date + 'T00:00:00Z'), translate(row.shift), presses.get(row.press_id)?.name ?? '', article?.code ?? '', article?.name ?? '', row.opening_min, row.planned_min, c.required, row[primaryBreakdown] ?? 0, row.startup_min, row.changeover_min, c.runtime, c.total, row.good_qty, row.startup_rejects, row.production_rejects, row.cycle_seconds, c.availability, c.performance, c.quality, c.trs, row.standard_seconds, row.labor_hours, c.earned, c.dle, row.notes ?? '', row.shift_start ?? '', translate(row.timeline_complete ? 'Oui' : 'Non'), JSON.stringify(row.stop_events ?? []), row.planned_qty ?? null, ...extras.map(field => row[field] ?? 0), ...(data.department && data.department !== "injection" ? [row.standard_operators ?? null, row.trs_target ?? null, row.dle_target ?? null] : [])]);
   }
   details.getColumn(1).numFmt = 'yyyy-mm-dd';
   for (const index of [18, 19, 20, 21, 25]) details.getColumn(index).numFmt = '0.0%';
-  for (const index of [6, 7, 8, 9, 10, 11, 12, 17, 22, 23, 24, ...EXTRA_LOSS_FIELDS.map((_, index) => 31 + index)]) details.getColumn(index).numFmt = '#,##0.00';
+  for (const index of [6, 7, 8, 9, 10, 11, 12, 17, 22, 23, 24, ...extras.map((_, index) => 31 + index)]) details.getColumn(index).numFmt = '#,##0.00';
   for (const index of [13, 14, 15, 16, 30]) details.getColumn(index).numFmt = '#,##0';
+  if (data.department && data.department !== 'injection') {
+    details.getColumn(31 + extras.length).numFmt = '0.0';
+    details.getColumn(32 + extras.length).numFmt = '0.0%';
+    details.getColumn(33 + extras.length).numFmt = '0.0%';
+  }
   details.autoFilter = {
     from: 'A1',
-    to: 'AL' + Math.max(1, rows.length + 1)
+    to: details.getColumn(details.columnCount).letter + Math.max(1, rows.length + 1)
   };
   details.getRow(1).height = 44;
   details.getRow(1).eachCell(cell => {

@@ -93,6 +93,6 @@ test('Langue, département et export Excel restent fonctionnels hors connexion',
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang','en');
   await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
-  await expect(page.locator('h1')).toContainText('Assembly');
-  await expect(page.getByRole('heading',{name:'No data in this department'})).toBeVisible();
+  await expect(page.locator('.breadcrumb')).toContainText('Assembly');
+  await expect(page.getByRole('heading',{name:'Daily workshop review',exact:false})).toBeVisible();
 });

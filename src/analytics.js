@@ -1,6 +1,6 @@
 import { t as translate } from "./i18n.js";
 import { calculate, SHIFTS } from "./domain.js";
-import { STOP_TYPES, unplannedMinutes } from "./losses.js";
+import { STOP_TYPES, stopTypesFor, unplannedMinutes } from "./losses.js";
 export { STOP_TYPES } from "./losses.js";
 export const defaultStart = shift => ({
   Matin: "06:00",
@@ -21,6 +21,7 @@ export function stopTotals(events = []) {
   return result;
 }
 export function validateTimeline(r) {
+  const STOP_TYPES = stopTypesFor(r.department);
   const errors = [];
   if (!r.timeline_complete) {
     if (r.stop_events != null && !Array.isArray(r.stop_events)) {
@@ -57,6 +58,7 @@ export function validateTimeline(r) {
   return errors;
 }
 export function timelineSegments(r) {
+  const STOP_TYPES = stopTypesFor(r?.department);
   if (!r?.timeline_complete || validateTimeline(r).length) return [];
   let cursor = 0;
   const result = [];
@@ -117,6 +119,7 @@ export function buildPareto(rows, includePlanned = false) {
     grouped.set(key, v);
   };
   for (const r of rows) {
+    const STOP_TYPES = stopTypesFor(r.department);
     if (r.timeline_complete && !validateTimeline(r).length) {
       detailed++;
       for (const e of r.stop_events) {

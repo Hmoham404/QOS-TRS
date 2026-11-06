@@ -46,18 +46,24 @@ test('Toutes les pages changent de langue, les préférences persistent et l’a
   expect(errors).toEqual([]);
 });
 
-test('Les quatre nouveaux départements restent vides et le retour préserve les données Injection', async ({ page }) => {
+test('Les espaces configurés sont accessibles, Soudure reste vide et Injection conserve ses données', async ({ page }) => {
   await page.goto('/');
   for (const department of ['Assemblage','Soudure','Métallisation','Sérigraphie']) {
     await page.getByRole('button',{name:'Changer de département',exact:true}).click();
     await page.getByRole('group',{name:'Choisir un département'}).getByRole('button',{name:department,exact:true}).click();
-    await expect(page.locator('h1')).toContainText(department);
-    await expect(page.getByRole('heading',{name:'Aucune donnée dans ce département'})).toBeVisible();
-    await expect(page.locator('.daily-fleet,.hero-number,.reference-grid')).toHaveCount(0);
-    await expect(page.getByRole('button',{name:'Nouvelle saisie',exact:true})).toHaveCount(0);
+    if (department === 'Soudure') {
+      await expect(page.locator('h1')).toContainText(department);
+      await expect(page.getByRole('heading',{name:'Aucune donnée dans ce département'})).toBeVisible();
+      await expect(page.getByRole('button',{name:'Nouvelle saisie',exact:true})).toHaveCount(0);
+    } else {
+      await expect(page.locator('h1')).toContainText('Bilan journalier de l’atelier');
+      await expect(page.locator('.daily-fleet tbody tr')).toHaveCount(1);
+      await expect(page.getByRole('button',{name:'Nouvelle saisie',exact:true})).toBeVisible();
+    }
   }
-  await page.reload(); await expect(page.locator('h1')).toContainText('Sérigraphie');
-  await page.getByRole('button',{name:'Retour à Injection'}).click();
+  await page.reload(); await expect(page.locator('.breadcrumb')).toContainText('Sérigraphie');
+  await page.getByRole('button',{name:'Changer de département',exact:true}).click();
+  await page.getByRole('group',{name:'Choisir un département'}).getByRole('button',{name:'Injection',exact:true}).click();
   await page.getByRole('button',{name:'Vue d’ensemble',exact:true}).click();
   await expect(page.locator('.strip-records')).toContainText('63 relevés');
 });
@@ -93,7 +99,7 @@ test('Les contrôles de langue et département restent utilisables sur mobile, y
   await page.getByRole('button',{name:label('Ouvrir le menu','ar')}).click();
   await page.getByRole('button',{name:label('Changer de département','ar')}).click();
   await page.getByRole('button',{name:label('Assemblage','ar'),exact:true}).click();
-  await expect(page.getByRole('heading',{name:label('Aucune donnée dans ce département','ar')})).toBeVisible();
+  await expect(page.getByRole('heading',{name:label('Bilan journalier de l’atelier','ar')})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:'.runtime/workspace-arabic-mobile.png',fullPage:true});
 });

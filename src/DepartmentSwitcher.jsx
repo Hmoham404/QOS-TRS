@@ -1,26 +1,27 @@
 import { useEffect, useRef, useState } from "react";
-import { Factory, ChevronDown, Check, Layers3, Flame, Sparkles, Palette } from "lucide-react";
+import { Factory, ChevronDown, Check } from "lucide-react";
+import { InjectionLogo, AssemblyLogo, WeldingLogo, MetallizationLogo, ScreenPrintingLogo } from "./DepartmentLogos.jsx";
 import { t as translate } from "./i18n.js";
 export const DEPARTMENTS = [{
   id: "injection",
   name: "Injection",
-  icon: Factory
+  icon: InjectionLogo
 }, {
   id: "assembly",
   name: "Assemblage",
-  icon: Layers3
+  icon: AssemblyLogo
 }, {
   id: "welding",
   name: "Soudure",
-  icon: Flame
+  icon: WeldingLogo
 }, {
   id: "metallization",
   name: "Métallisation",
-  icon: Sparkles
+  icon: MetallizationLogo
 }, {
   id: "screen-printing",
   name: "Sérigraphie",
-  icon: Palette
+  icon: ScreenPrintingLogo
 }];
 export function getSavedDepartment() {
   try {
@@ -59,13 +60,13 @@ export default function DepartmentSwitcher({
   }, [open]);
   return <div className="department-switcher" ref={root}>
     <button className="workspace department-trigger" type="button" ref={trigger} aria-label={translate("Changer de département")} aria-expanded={open} aria-controls="department-options" onClick={() => setOpen(value => !value)}>
-      <span className="workspace-icon"><Icon size={22} /></span><span className="department-current"><strong>{translate("Atelier")} {translate(selected.name)}</strong><small>{translate("Espace de production")}</small></span><ChevronDown size={16} />
+      <span className="workspace-icon department-logo"><Icon size={30} /></span><span className="department-current"><strong>{translate("Atelier")} {translate(selected.name)}</strong><small>{translate("Espace de production")}</small></span><ChevronDown size={16} />
     </button>
     {open && <div className="department-options" id="department-options" role="group" aria-label={translate("Choisir un département")}>
       <span className="department-caption">{translate("Département")}</span>
       {DEPARTMENTS.map(item => {
         const ItemIcon = item.icon;
-        return <button type="button" key={item.id} aria-pressed={department === item.id} onClick={() => {
+        return <button type="button" key={item.id} data-department={item.id} aria-pressed={department === item.id} onClick={() => {
           onChange(item.id);
           setOpen(false);
           trigger.current?.focus();

@@ -1,4 +1,4 @@
-import { UNPLANNED_TYPES } from "./losses.js";
+import { unplannedTypesFor } from "./losses.js";
 import { t as translate } from "./i18n.js";
 import { aggregate, calculate, ratio } from "./domain.js";
 
@@ -17,6 +17,7 @@ export function planningRate(rows) {
   };
 }
 export function trsLosses(rows) {
+  const UNPLANNED_TYPES = unplannedTypesFor(rows[0]?.department);
   const totals = {
     ...Object.fromEntries(UNPLANNED_TYPES.map(([key]) => [key, 0])),
     speed: 0,

@@ -1,5 +1,7 @@
 // UI messages. French source keys are also the French fallback.
+import departmentMessages from './department-messages.js';
 export default {
+  ...departmentMessages,
   "Panne machine": {
     "en": "Machine breakdown",
     "ar": "عطل الآلة",

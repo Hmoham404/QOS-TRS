@@ -1,3 +1,4 @@
+import { exportDepartmentName } from "./export-columns.js";
 import { useState } from "react";
 import { FileSpreadsheet, LoaderCircle } from "lucide-react";
 import { download } from "./data";
@@ -5,7 +6,7 @@ import { t as translate } from "./i18n.js";
 export default function ExcelExport({
   rows,
   data,
-  department = "Injection",
+  department = exportDepartmentName(data),
   className = "btn",
   caption = "Exporter Excel"
 }) {
