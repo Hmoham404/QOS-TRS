@@ -3,7 +3,7 @@ export const DEPARTMENT_IDS = ['injection', 'assembly', 'welding', 'metallizatio
 export const DEPARTMENT_CONFIG = {
   injection: { name: 'Injection', enabled: true, trs: .85, dle: null },
   assembly: { name: 'Assemblage', enabled: true, trs: .8, dle: .8 },
-  welding: { name: 'Soudure', enabled: false, trs: .8, dle: .8 },
+  welding: { name: 'Soudure', enabled: true, trs: .8, dle: .8 },
   metallization: { name: 'Métallisation', enabled: true, trs: .7, dle: .7 },
   'screen-printing': { name: 'Sérigraphie', enabled: true, trs: .8, dle: .8 },
 };
@@ -39,8 +39,9 @@ const catalogs = {
   ],
   'screen-printing': [['Base KIKO', '2.4.30051', 5, 7.5, 1.5]],
   assembly: [['Compact KIKO', '3.3.30273', 3.26, 42.35, 13]],
+  welding: [['Base+insert soudés KIKO', '2.4.30049', 5.94, 11.88, 2]],
 };
-const groups = { assembly: '1', metallization: '2', 'screen-printing': '3' };
+const groups = { assembly: '1', metallization: '2', 'screen-printing': '3', welding: '4' };
 export function departmentSeed(department) {
   const config = departmentConfig(department);
   const group = groups[department];

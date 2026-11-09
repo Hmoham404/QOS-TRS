@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { PGlite } from '@electric-sql/pglite';
 import ExcelJS from 'exceljs';
-import { departmentSeed, departmentScope, targetForRows } from '../src/departments.js';
+import { departmentConfig, departmentSeed, departmentScope, targetForRows } from '../src/departments.js';
 import { calculate, validateRecord } from '../src/domain.js';
 import { extraLossDefaults, stopTypesFor } from '../src/losses.js';
 import { stopTotals, buildPareto } from '../src/analytics.js';
@@ -31,7 +31,7 @@ function record(department, overrides = {}) {
 }
 
 test('Les catalogues reprennent les paramètres fournis sans historique inventé', () => {
-  const metal = departmentSeed('metallization'), screen = departmentSeed('screen-printing'), assembly = departmentSeed('assembly');
+  const metal = departmentSeed('metallization'), screen = departmentSeed('screen-printing'), assembly = departmentSeed('assembly'), welding = departmentSeed('welding');
   assert.equal(metal.articles.length, 6);
   assert.deepEqual(metal.articles.map(a => [a.code,a.mold_cycle_seconds,a.standard_seconds,a.standard_operators]), [
     ['2.3.30156',.75,22.5,30],['2.4.30050',.75,22.5,30],['11600CO',.75,22.5,30],
@@ -39,7 +39,10 @@ test('Les catalogues reprennent les paramètres fournis sans historique inventé
   ]);
   assert.deepEqual(screen.articles.map(a => [a.code,a.mold_cycle_seconds,a.standard_seconds,a.standard_operators]), [['2.4.30051',5,7.5,1.5]]);
   assert.deepEqual(assembly.articles.map(a => [a.code,a.mold_cycle_seconds,a.standard_seconds,a.standard_operators]), [['3.3.30273',3.26,42.35,13]]);
-  for (const data of [metal,screen,assembly]) {
+  assert.equal(departmentConfig('welding').enabled, true);
+  assert.deepEqual(welding.articles.map(a => [a.name,a.code,a.mold_cycle_seconds,a.standard_seconds,a.standard_operators]), [['Base+insert soudés KIKO','2.4.30049',5.94,11.88,2]]);
+  for (const data of [metal,screen,assembly,welding]) {
+    assert.equal(data.presses.length, 1);
     assert.equal(data.records.length, 0);
     assert.ok(data.articles.every(a => a.cavities === 1 && a.trs_target === (data === metal ? .7 : .8) && a.dle_target === a.trs_target));
   }
@@ -48,7 +51,7 @@ test('Les catalogues reprennent les paramètres fournis sans historique inventé
 });
 
 test('Les pertes propres à chaque département alimentent journaux, Pareto et DLE sans double comptage', () => {
-  for (const department of ['assembly','metallization','screen-printing']) {
+  for (const department of ['assembly','metallization','screen-printing','welding']) {
     const types = stopTypesFor(department);
     const events = Object.keys(types).filter(key => key !== 'planned').map((category,index) => ({category,cause:'',start_min:index*5,end_min:index*5+5}));
     const row = record(department,{timeline_complete:true,stop_events:events,...stopTotals(events)});
@@ -63,6 +66,11 @@ test('Les pertes propres à chaque département alimentent journaux, Pareto et D
       assert.ok(!labels.includes('Panne moule'));
     }
     if (department === 'screen-printing') assert.ok(labels.includes('Panne four'));
+    if (department === 'welding') {
+      assert.deepEqual(Object.values(types).map(type => type.source), ["Manque d'effectif",'Panne machine','Problème qualité','Rupture SFIN',"Coupure d'énergie",'Réglage','Démarrage / arrêt','Changement de référence','Autres pertes','Arrêt planifié']);
+      assert.ok(labels.includes('Rupture SFIN') && !labels.includes('Rupture MP'));
+      assert.ok(validateRecord({...row, peripherals_min: 1}).length);
+    }
     assert.ok(validateRecord({...row, [department === 'metallization' ? 'breakdown_min' : 'mold_breakdown_min']: 1}).length);
     assert.ok(Math.abs(trsLosses([row]).total + row.good_qty * row.cycle_seconds / 60 - 480) < 1e-8);
   }
@@ -70,8 +78,8 @@ test('Les pertes propres à chaque département alimentent journaux, Pareto et D
 });
 
 test('Les exports nomment le département et ses pertes et conservent les effectifs fractionnaires', async () => {
-  for (const department of ['assembly','metallization','screen-printing']) {
-    const row=record(department,{peripherals_min:department === 'assembly' ? 0 : 12});
+  for (const department of ['assembly','metallization','screen-printing','welding']) {
+    const row=record(department,{peripherals_min:['assembly','welding'].includes(department) ? 0 : 12,material_shortage_min:12});
     const book=new ExcelJS.Workbook();await book.xlsx.load(await buildExcelExport([row],departmentSeed(department)));
     const details=book.getWorksheet('Relevés'), headers=details.getRow(1).values;
     assert.equal(details.getCell('C1').value,'Équipement');
@@ -80,6 +88,10 @@ test('Les exports nomment le département et ses pertes et conservent les effect
     assert.equal(book.getWorksheet('Synthèse').getCell('B14').result,calculate(row).dle);
     if(department==='screen-printing')assert.ok(headers.includes('Panne four (min)'));
     if(department==='metallization')assert.ok(headers.includes('Panne Vaccum (min)')&&headers.includes('Panne ligne de peinture (min)'));
+    if(department==='welding') {
+      assert.ok(headers.includes('Rupture SFIN (min)') && !headers.includes('Rupture MP (min)'));
+      assert.equal(details.getCell(2,headers.indexOf('Rupture SFIN (min)')).value,12);
+    }
   }
 });
 
@@ -88,7 +100,7 @@ test('Le stockage local isole les départements et conserve les paramètres hist
   const store=createLocalStore(JSON.parse(readFileSync(new URL('../src/seed.json',import.meta.url),'utf8')),{getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)});
   const loadData=async department=>store.read(department), saveRecord=async (...args)=>store.saveRecord(...args), saveReference=async (...args)=>store.saveReference(...args);
     const initial=await loadData();assert.equal(initial.records.length,63);
-    for(const department of ['assembly','metallization','screen-printing']) {
+    for(const department of ['assembly','metallization','screen-printing','welding']) {
       const row=record(department);await saveRecord(row,department);
       const data=await loadData(department);assert.equal(data.records.length,1);
       assert.equal(data.records[0].department,department);
@@ -101,14 +113,15 @@ test('Le stockage local isole les départements et conserve les paramètres hist
     assert.equal((await loadData()).records.length,63);
 });
 
-test('La migration 07 est rejouable, protège les départements et conserve les 63 relevés Injection', async () => {
+test('Les migrations 07 et 08 sont rejouables, protègent les départements et conservent les 63 relevés Injection', async () => {
   const db=new PGlite();
   try {
     await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select null::uuid$$;`);
-    for(const name of ['01_schema','02_import_excel','03_stop_journal','04_daily_review','05_planning_public_access','06_loss_categories','07_departments','07_departments'])await db.exec(readFileSync(new URL(`../supabase/${name}.sql`,import.meta.url),'utf8'));
+    for(const name of ['01_schema','02_import_excel','03_stop_journal','04_daily_review','05_planning_public_access','06_loss_categories','07_departments','07_departments','08_welding','08_welding'])await db.exec(readFileSync(new URL(`../supabase/${name}.sql`,import.meta.url),'utf8'));
     assert.equal((await db.query("select count(*)::int n from public.production_records where department='injection'")).rows[0].n,63);
-    assert.equal((await db.query('select count(*)::int n from public.articles')).rows[0].n,11);
-    for(const department of ['assembly','metallization','screen-printing']) {
+    assert.equal((await db.query('select count(*)::int n from public.articles')).rows[0].n,12);
+    assert.equal((await db.query("select count(*)::int n from public.production_records where department='welding'")).rows[0].n,0);
+    for(const department of ['assembly','metallization','screen-printing','welding']) {
       const seed=departmentSeed(department),article=seed.articles[0];
       const actual=(await db.query('select * from public.articles where id=$1',[article.id])).rows[0];
       for(const key of ['mold_cycle_seconds','standard_seconds','standard_operators','trs_target','dle_target'])assert.equal(Number(actual[key]),article[key]);
@@ -124,32 +137,44 @@ test('La migration 07 est rejouable, protège les départements et conserve les 
       const other=departmentSeed(department==='assembly'?'metallization':'assembly');
       await assert.rejects(db.query('update public.production_records set press_id=$1 where id=$2',[other.presses[0].id,row.id]));
       await assert.rejects(db.query(`update public.production_records set ${department==='metallization'?'breakdown_min':'mold_breakdown_min'}=1 where id=$1`,[row.id]));
+      if (department === 'welding') {
+        await assert.rejects(db.query('update public.production_records set peripherals_min=1 where id=$1',[row.id]));
+        await assert.rejects(db.query('update public.articles set standard_operators=null where id=$1',[article.id]));
+        await db.query('update public.production_records set material_shortage_min=15 where id=$1',[row.id]);
+        assert.equal(Number((await db.query('select runtime_min from public.production_metrics where id=$1',[row.id])).rows[0].runtime_min),465);
+        await db.exec(readFileSync(new URL('../supabase/08_welding.sql',import.meta.url),'utf8'));
+        assert.equal(Number((await db.query('select standard_seconds from public.articles where id=$1',[article.id])).rows[0].standard_seconds),99);
+      }
     }
     // Codes may be shared between departments, never duplicated within one.
     await db.query("insert into public.articles(department,code,name,cavities,mold_cycle_seconds,standard_seconds,standard_operators,trs_target,dle_target) values('assembly','2.3.30156','Shared code',1,1,1,1,.8,.8)");
     await assert.rejects(db.query("insert into public.articles(department,code,name,cavities,mold_cycle_seconds,standard_seconds,standard_operators,trs_target,dle_target) values('assembly','2.3.30156','Duplicate',1,1,1,1,.8,.8)"));
     await db.exec('set role anon');
     assert.equal((await db.query('select public.qos_departments_ready() ready')).rows[0].ready,true);
+    assert.equal((await db.query('select public.qos_welding_ready() ready')).rows[0].ready,true);
     assert.equal((await db.query("select count(*)::int n from public.production_records where department='assembly'")).rows[0].n,1);
   } finally {await db.close();}
 });
 
-test('La reprise JSON vers SQL conserve le département et ses instantanés historiques', async () => {
+for (const department of ['screen-printing','welding']) test(`La reprise JSON vers SQL conserve ${department} et ses instantanés historiques`, async () => {
   const db=new PGlite(), dir=mkdtempSync(join(tmpdir(),'qos-department-backup-'));
   const input=join(dir,'backup.json'), output=join(dir,'restore.sql');
   try {
-    const data=departmentSeed('screen-printing');
-    const row=record('screen-printing',{standard_seconds:8.25,standard_operators:1.75,trs_target:.75,peripherals_min:12});
+    const data=departmentSeed(department);
+    const lossField=department==='welding'?'material_shortage_min':'peripherals_min';
+    const row=record(department,{standard_seconds:8.25,standard_operators:1.75,trs_target:.75,[lossField]:12});
     data.records=[row];
     writeFileSync(input,JSON.stringify({version:1,...data}));
     const result=spawnSync(process.execPath,[fileURLToPath(new URL('../scripts/backup-to-sql.mjs',import.meta.url)),input,output],{encoding:'utf8'});
     assert.equal(result.status,0,result.stderr);
     await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select null::uuid$$;`);
-    for(const name of ['01_schema','03_stop_journal','04_daily_review','05_planning_public_access','06_loss_categories','07_departments'])await db.exec(readFileSync(new URL(`../supabase/${name}.sql`,import.meta.url),'utf8'));
-    await db.exec(readFileSync(output,'utf8'));
+    for(const name of ['01_schema','03_stop_journal','04_daily_review','05_planning_public_access','06_loss_categories','07_departments','08_welding'])await db.exec(readFileSync(new URL(`../supabase/${name}.sql`,import.meta.url),'utf8'));
+    const restore=readFileSync(output,'utf8');
+    if (department==='welding') assert.ok(restore.includes('08_welding.sql'));
+    await db.exec(restore);
     const saved=(await db.query('select * from public.production_records where id=$1',[row.id])).rows[0];
-    assert.equal(saved.department,'screen-printing');
-    for(const key of ['cycle_seconds','standard_seconds','standard_operators','trs_target','dle_target','peripherals_min'])assert.equal(Number(saved[key]),row[key]);
+    assert.equal(saved.department,department);
+    for(const key of ['cycle_seconds','standard_seconds','standard_operators','trs_target','dle_target',lossField])assert.equal(Number(saved[key]),row[key]);
     assert.equal((await db.query("select count(*)::int n from public.production_records where department='injection'")).rows[0].n,0);
   } finally {
     await db.close();for(const path of [input,output])try{unlinkSync(path);}catch{}

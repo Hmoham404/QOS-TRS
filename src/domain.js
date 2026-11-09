@@ -87,15 +87,19 @@ export function validateRecord(r) {
   return [...errors, ...validateTimeline(r)];
 }
 export const recordKey = r => [r.date, r.shift, r.press_id, r.article_id].join('|');
-export const formatNumber = (n, digits = 0) => n == null ? '—' : new Intl.NumberFormat(getLocale(), {
-  maximumFractionDigits: digits,
-  minimumFractionDigits: digits
-}).format(n);
+const numberFormats = new Map(), dateFormats = new Map();
+export const formatNumber = (n, digits = 0) => {
+  if (n == null) return '—';
+  const locale = getLocale(), key = `${locale}:${digits}`;
+  if (!numberFormats.has(key)) numberFormats.set(key, new Intl.NumberFormat(locale, {maximumFractionDigits:digits,minimumFractionDigits:digits}));
+  return numberFormats.get(key).format(n);
+};
 export const percent = n => n == null ? '—' : `${formatNumber(n * 100, 1)} %`;
-export const dateLabel = date => new Date(date + 'T12:00:00').toLocaleDateString(getLocale(), {
-  day: '2-digit',
-  month: 'short'
-});
+export const dateLabel = date => {
+  const locale = getLocale();
+  if (!dateFormats.has(locale)) dateFormats.set(locale, new Intl.DateTimeFormat(locale, {day:'2-digit',month:'short'}));
+  return dateFormats.get(locale).format(new Date(date + 'T12:00:00'));
+};
 export const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

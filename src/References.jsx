@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Factory, Plus, X, Boxes, Pencil, Search, Save } from "lucide-react";
 import { saveReference } from "./data";
 import { formatNumber as num } from "./domain";
-import { IconButton, Empty } from "./App";
+import { IconButton, Empty } from "./ui.jsx";
 export default function References({
   data,
   canEdit,

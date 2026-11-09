@@ -21,6 +21,7 @@ for (const [department,name,loss] of [
   ['metallization','Métallisation','Panne Vaccum'],
   ['screen-printing','Sérigraphie','Panne four'],
   ['assembly','Assemblage','Panne machine'],
+  ['welding','Soudure','Rupture SFIN'],
 ]) test(`${name} : paramètres, saisie, journal, historique, Excel et isolation`, async ({page}) => {
   test.setTimeout(90000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
@@ -34,6 +35,7 @@ for (const [department,name,loss] of [
   await expect(page.locator('.reference-card')).toHaveCount(departmentSeed(department).articles.length);
   await page.screenshot({path:`.runtime/${department}-parameters.png`,fullPage:true});
   await navigate(page,'Saisie de production');
+  await expect(page.getByRole('combobox',{name:'Référence article',exact:true})).toBeVisible();
   const options=await page.getByRole('combobox',{name:'Référence article',exact:true}).locator('option').allTextContents();
   expect(options.some(value=>value.includes(departmentSeed(department).articles[0].code))).toBe(true);
   await expect(page.getByLabel('Panne moule',{exact:true})).toHaveCount(0);
@@ -42,13 +44,21 @@ for (const [department,name,loss] of [
     await expect(page.getByLabel('Panne ligne de peinture',{exact:true})).toBeVisible();
     await expect(page.getByLabel('Panne machine',{exact:true})).toHaveCount(0);
   }
+  if(department==='welding') {
+    await expect(page.getByLabel('Rupture SFIN',{exact:true})).toBeVisible();
+    await expect(page.getByLabel('Rupture MP',{exact:true})).toHaveCount(0);
+    await expect(page.getByLabel('Panne four',{exact:true})).toHaveCount(0);
+    await expect(page.locator('.article-detail')).toContainText('5,940');
+    await expect(page.locator('.entry-summary')).toContainText('80,0 %');
+    expect(await page.locator('.save-button').evaluate(element=>getComputedStyle(element).backgroundColor)).toBe('rgb(180, 35, 50)');
+  }
   await page.getByLabel('Date de production',{exact:true}).fill('2026-11-06');
   await page.getByLabel('Quantité conforme',{exact:true}).fill('100');
   await page.getByLabel('Heures dépensées',{exact:true}).fill('8');
   await page.getByLabel('Commentaire du poste').fill(`DEPT ${department}`);
   await page.getByRole('checkbox',{name:'Utiliser les arrêts horodatés'}).check();
   await page.getByRole('button',{name:'Ajouter un arrêt',exact:true}).click();
-  const category=department==='metallization'?'mold':department==='screen-printing'?'peripherals':'breakdown';
+  const category=department==='metallization'?'mold':department==='screen-printing'?'peripherals':department==='welding'?'material':'breakdown';
   await page.getByLabel('Catégorie arrêt 1',{exact:true}).selectOption(category);
   await expect(page.getByLabel(loss,{exact:true})).toHaveValue('10');
   await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
@@ -86,7 +96,7 @@ for (const [department,name,loss] of [
 
 test('Les brouillons et les préférences restent séparés entre espaces, y compris sur mobile', async ({page})=>{
   await page.setViewportSize({width:390,height:844});await page.goto('/');
-  for(const [name,note] of [['Assemblage','Brouillon assemblage'],['Métallisation','Brouillon métal'],['Sérigraphie','Brouillon sérigraphie']]) {
+  for(const [name,note] of [['Assemblage','Brouillon assemblage'],['Métallisation','Brouillon métal'],['Sérigraphie','Brouillon sérigraphie'],['Soudure','Brouillon soudure']]) {
     await selectDepartment(page,name);await navigate(page,'Saisie de production');
     await expect(page.getByLabel('Commentaire du poste')).toHaveValue('');
     await page.getByLabel('Commentaire du poste').fill(note);
@@ -95,6 +105,23 @@ test('Les brouillons et les préférences restent séparés entre espaces, y com
   await selectDepartment(page,'Assemblage');await navigate(page,'Saisie de production');
   await expect(page.getByLabel('Commentaire du poste')).toHaveValue('Brouillon assemblage');
   await page.screenshot({path:'.runtime/assembly-mobile.png',fullPage:true});
+});
+
+test('Soudure : identité rouge, saisie conservée en mode nuit et affichage mobile',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/');await selectDepartment(page,'Soudure');
+  await navigate(page,'Saisie de production');
+  await page.getByLabel('Commentaire du poste').fill('Brouillon soudure rouge');
+  await page.screenshot({path:'.runtime/welding-mobile-day.png',fullPage:true});
+  await page.getByRole('button',{name:'Mode nuit',exact:true}).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
+  await expect(page.getByLabel('Commentaire du poste')).toHaveValue('Brouillon soudure rouge');
+  expect(await page.locator('.save-button').evaluate(element=>getComputedStyle(element).backgroundColor)).toBe('rgb(180, 35, 50)');
+  expect(await page.locator('.app').evaluate(element=>getComputedStyle(element).getPropertyValue('--dept-accent').trim())).toBe('#ffb3b8');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.screenshot({path:'.runtime/welding-mobile-night.png',fullPage:true});
+  await page.reload();await navigate(page,'Saisie de production');
+  await expect(page.getByLabel('Commentaire du poste')).toHaveValue('Brouillon soudure rouge');
 });
 
 test('Configurer un article garde les standards historiques et applique les nouveaux paramètres aux futures saisies', async ({page})=>{

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createCloudReader } from './cloud-reader.js';
 import seed from '@seed';
 import { createLocalStore } from './local-data.js';
 import { validateRecord } from './domain';
@@ -8,46 +8,28 @@ import { departmentConfig, departmentScope } from './departments.js';
 const {url,key,error:configError}=resolveSupabaseConfig(import.meta.env);
 export {configError};
 export const configured=Boolean(url && key && !configError);
-// L'accès public utilise toujours la clé publique, jamais une ancienne session.
-export const supabase=configured?createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
+// The local workshop does not download the Supabase SDK.
+export let supabase=null;
 export const dataScope=configured?url:'local';
 const cacheKey = department => 'qos-cloud-cache:' + departmentScope(dataScope, department);
-const migrationMessage = 'Exécutez supabase/07_departments.sql dans SQL Editor pour activer les espaces de production.';
-let cloudDepartmentsReady = false;
 const localStore = () => createLocalStore(seed, localStorage);
-async function requireDepartmentMigration(department) {
-  if (department === 'injection' || cloudDepartmentsReady) return;
-  if (!navigator.onLine) throw new Error('Hors connexion : votre brouillon est conservé sur cet appareil. Reconnectez-vous puis enregistrez le relevé.');
-  const {data,error} = await supabase.rpc('qos_departments_ready');
-  if (error || data !== true) throw new Error(migrationMessage);
-  cloudDepartmentsReady = true;
+let cloudPromise;
+function cloud() {
+  if (!cloudPromise) cloudPromise=import('@supabase/supabase-js').then(({createClient})=>{
+    supabase=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+    return {supabase,reader:createCloudReader(supabase,{onRead:result=>{
+      try{localStorage.setItem(cacheKey(result.department),JSON.stringify(result));}catch{/* A full cache must not prevent a successful read. */}
+    }})};
+  }).catch(error=>{cloudPromise=null;throw error;});
+  return cloudPromise;
 }
-export async function loadData(department = 'injection') {
+export async function loadData(department = 'injection', options = {}) {
   departmentConfig(department);
-  if (!supabase) return localStore().read(department);
+  if (!configured) return localStore().read(department);
   try {
-  if(!navigator.onLine)throw new TypeError('Failed to fetch');
-  const access=await supabase.rpc('qos_public_access_ready');
-  if(access.error)throw access.error;
-  if(access.data!==true)throw new Error('Exécutez supabase/05_planning_public_access.sql dans SQL Editor pour ouvrir cet atelier.');
-  const departments = await supabase.rpc('qos_departments_ready');
-  if (departments.error && departments.error.code !== 'PGRST202') throw departments.error;
-  cloudDepartmentsReady = !departments.error && departments.data === true;
-  if (department !== 'injection' && !cloudDepartmentsReady) throw new Error(migrationMessage);
-  const lists=await Promise.all(['presses','articles','production_records'].map(async table=>{
-    const all=[];
-    for(let offset=0;;offset+=1000) {
-      let query = supabase.from(table).select('*');
-      if (cloudDepartmentsReady) query = query.eq('department', department);
-      const {data,error}=await query.order('id').range(offset,offset+999);
-      if(error)throw error;
-      all.push(...data); if(data.length<1000)break;
-    }
-    return all;
-  }));
-  const result={department,presses:lists[0],articles:lists[1],records:lists[2],cachedAt:new Date().toISOString()};
-  try{localStorage.setItem(cacheKey(department),JSON.stringify(result));}catch{/* La lecture réseau reste utilisable si le stockage est plein. */}
-  return result;
+    if(!navigator.onLine)throw new TypeError('Failed to fetch');
+    const {reader}=await cloud();
+    return await reader.load(department,options);
   } catch(error) {
     const network=!navigator.onLine || /Failed to fetch|fetch failed|NetworkError|Load failed/i.test(error.message||'');
     if(network){
@@ -65,11 +47,12 @@ export async function saveRecord(record, department = 'injection') {
   const errors=validateRecord(record); if(errors.length)throw new Error(errors[0]);
   const r={...record};
   delete r.created_at; delete r.updated_at; delete r.created_by;
-  if (supabase) {
-    await requireDepartmentMigration(department);
-    if (cloudDepartmentsReady) r.department = department;
-    else for (const key of ['department','standard_operators','trs_target','dle_target']) delete r[key];
+  if (configured) {
     if(!navigator.onLine)throw new Error('Hors connexion : votre brouillon est conservé sur cet appareil. Reconnectez-vous puis enregistrez le relevé.');
+    const {supabase,reader}=await cloud();
+    const {departments}=await reader.ready(department);
+    if (departments) r.department = department;
+    else for (const key of ['department','standard_operators','trs_target','dle_target']) delete r[key];
     let query;
     if(record.updated_at) query=supabase.from('production_records').update(r).eq('id',r.id).eq('updated_at',record.updated_at);
     else query=supabase.from('production_records').insert(r);
@@ -83,6 +66,7 @@ export async function saveRecord(record, department = 'injection') {
     if(error?.code==='PGRST204' && /staffing_min|mold_breakdown_min|peripherals_min|material_shortage_min|quality_stop_min|power_cut_min|adjustment_min|other_loss_min/.test(error.message)) throw new Error('Exécutez supabase/06_loss_categories.sql dans SQL Editor. Le brouillon et ses pertes sont conservés.');
     if(error)throw new Error(error.code==='23505'?'Un relevé existe déjà pour cette date, ce poste, cette presse et cet article. Modifiez-le depuis l’historique.':error.code==='PGRST204'&&/planned_qty/.test(error.message)?'Exécutez supabase/05_planning_public_access.sql dans SQL Editor. Le brouillon et sa quantité planifiée sont conservés.':error.message);
     if(!data?.length)throw new Error('Ce relevé a été modifié par un autre utilisateur. Actualisez avant de réessayer.');
+    reader.invalidate(department);
   } else {
     localStore().saveRecord(record, department);
   }
@@ -91,14 +75,16 @@ export async function saveReference(table,item,department = 'injection') {
   departmentConfig(department);
   if (!['presses','articles'].includes(table)) throw new Error('Type de référence invalide.');
   if (item.department && item.department !== department) throw new Error('La référence appartient à un autre département.');
-  if(supabase) {
-    await requireDepartmentMigration(department);
-    item = {...item};
-    if (cloudDepartmentsReady) item.department = department;
-    else for (const key of ['department','standard_operators','trs_target','dle_target']) delete item[key];
+  if(configured) {
     if(!navigator.onLine)throw new Error('Reconnectez-vous pour enregistrer cette référence dans la base partagée.');
+    const {supabase,reader}=await cloud();
+    const {departments}=await reader.ready(department);
+    item = {...item};
+    if (departments) item.department = department;
+    else for (const key of ['department','standard_operators','trs_target','dle_target']) delete item[key];
     const {error}=await supabase.from(table).upsert(item);
     if(error)throw error;
+    reader.invalidate(department);
   } else {
     localStore().saveReference(table, item, department);
   }

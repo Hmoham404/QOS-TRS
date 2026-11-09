@@ -26,8 +26,8 @@
   --dept-sidebar: #492b41; --dept-sidebar-deep: #291b2b; --dept-hero: #763957; --dept-canvas: #faf6f9;
 }
 [data-department=welding] {
-  --dept-ink: #806000; --dept-bright: #ffe17a; --dept-soft: #fff7d9; --dept-border: #e8d58f;
-  --dept-sidebar: #423a20; --dept-sidebar-deep: #242313; --dept-hero: #75601e; --dept-canvas: #fcfaf2;
+  --dept-ink: #b42332; --dept-bright: #ffb3b8; --dept-soft: #fff0f1; --dept-border: #efc2c7;
+  --dept-sidebar: #4a2029; --dept-sidebar-deep: #28131b; --dept-hero: #8d2938; --dept-canvas: #fcf7f8;
 }
 .app[data-department] {
   --dept-accent: var(--dept-ink);
@@ -41,7 +41,7 @@
 :root[data-theme=dark] [data-department=assembly] {--dept-soft:#192f4d;--dept-border:#355a86;--dept-canvas:#0c1523}
 :root[data-theme=dark] [data-department=metallization] {--dept-soft:#203541;--dept-border:#426375;--dept-canvas:#101a22}
 :root[data-theme=dark] [data-department=screen-printing] {--dept-soft:#392638;--dept-border:#75516a;--dept-canvas:#1c141e}
-:root[data-theme=dark] [data-department=welding] {--dept-soft:#37331b;--dept-border:#75672e;--dept-canvas:#1b1a12}
+:root[data-theme=dark] [data-department=welding] {--dept-soft:#3e222a;--dept-border:#85424e;--dept-canvas:#1d1319}
 :root[data-theme=dark] .app[data-department] {--dept-accent:var(--dept-bright)}
 
 .app[data-department] :is(.main,.content) {background:var(--dept-canvas)}
@@ -153,8 +153,6 @@
 }
 .app[data-department=metallization] .btn.primary {background:linear-gradient(120deg,#2d5369,#406c81);border-color:#426c80;box-shadow:inset 0 1px #ffffff24,0 3px 8px #172d3b14}
 .app[data-department=metallization] .btn.primary:hover {background:#294e62}
-.app[data-department=welding] :is(.btn.primary,.save-button) {background:#f5cf4a;border-color:#caa327;color:#342b12}
-.app[data-department=welding] :is(.btn.primary,.save-button):hover {background:#ffdf6c;border-color:#caa327}
 .app[data-department] .department-empty-mark {width:84px;height:84px;border-radius:22px;box-shadow:inset 0 1px #ffffff22}
 @media(max-width:760px) {
   .app[data-department] .department-identity{font-size:10px;margin-block-end:8px;padding:4px 9px 4px 5px}

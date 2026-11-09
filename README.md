@@ -8,9 +8,11 @@ Le sélecteur **Traduction** propose le français, l’arabe, l’anglais, l’i
 
 Le sélecteur **Jour / Nuit** de la barre supérieure adapte les sept écrans, formulaires, tableaux, graphiques et dialogues. Il suit le thème du système au premier démarrage, puis conserve le choix explicite sur cet appareil, y compris hors connexion. Les onglets ouverts sur la même adresse se synchronisent. Le changement de thème conserve la saisie en cours. Le bandeau « Votre atelier. Une nouvelle perspective. » a été retiré pour donner plus de place aux indicateurs.
 
-Le sélecteur d’atelier ouvre Injection, Assemblage, Soudure, Métallisation et Sérigraphie. **Assemblage, Métallisation et Sérigraphie disposent maintenant des mêmes parcours qu’Injection**, avec leurs propres références, objectifs, effectifs standards et causes de pertes. Les relevés, brouillons et sauvegardes restent séparés ; aucun historique Injection n’est copié. Soudure reste un espace réservé. Le département sélectionné est mémorisé après rechargement. Voir [le guide des départements](docs/departements.md).
+Le sélecteur d’atelier ouvre Injection, Assemblage, Soudure, Métallisation et Sérigraphie. **Les quatre autres ateliers disposent des mêmes parcours qu’Injection**, avec leurs propres références, objectifs, effectifs standards et causes de pertes. Les relevés, brouillons et sauvegardes restent séparés ; aucun historique Injection n’est copié. Soudure utilise une identité rouge et la référence Base+insert soudés KIKO `2.4.30049` (cycle 5,94 s, standard 11,88 s, effectif 2, objectifs TRS/DLE 80 %). Le département sélectionné est mémorisé après rechargement. Voir [le guide des départements](docs/departements.md).
 
 **Base Supabase existante :** appliquer `supabase/07_departments.sql` après les migrations 01 à 06 pour activer les nouveaux espaces partagés. En mode local, leurs catalogues sont disponibles directement. Les objectifs TRS/DLE sont de 70 % en Métallisation et de 80 % en Sérigraphie et Assemblage. Les équipements initiaux sont des lignes configurables ; aucun relevé de production n’est créé.
+
+Pour Soudure en mode partagé, appliquer ensuite `supabase/08_welding.sql`. Les pertes comprennent « Rupture SFIN » et une seule catégorie « Problème qualité ». Le mode local est disponible directement.
 
 **Exporter Excel** télécharge un véritable fichier `.xlsx`, comprenant une synthèse pondérée et les relevés détaillés. Dans le bilan journalier, l’export respecte ses filtres ; dans les vues d’ensemble et Courbes, il respecte le périmètre sélectionné ; dans l’historique, il respecte aussi la recherche. Configuration propose l’export de tous les relevés Injection. Les dates et nombres restent typés, les taux sont formatés en pourcentages et la synthèse contient des formules avec résultats sauvegardés. Le CSV et la sauvegarde JSON restent disponibles.
 
@@ -38,6 +40,14 @@ npm run dev
 ```
 
 Ouvrir **http://127.0.0.1:5173**. Le serveur doit rester lancé. Le port 5173 est fixe : si le site est déjà ouvert, réutiliser le serveur existant.
+
+## Rapidité et lecture de la base
+
+Le bilan journalier s’ouvre sans charger les bibliothèques des graphiques, de l’export Excel ou de Supabase en mode local. Les écrans complémentaires se chargent à la demande et restent disponibles hors connexion après préparation de la PWA. Les ressources versionnées de production sont conservées dans le cache du navigateur.
+
+Les lectures Supabase simultanées d’un même département partagent une requête. Les vérifications de migrations réussies sont conservées pendant la session, les tables sont lues en parallèle et les pages suivantes utilisent le dernier identifiant reçu, sans décalage croissant. L’historique reste complet. Les actualisations automatiques peuvent réutiliser une lecture réussie de moins de 30 secondes ; le bouton Actualiser et le retour après enregistrement relisent la base. Une écriture invalide la copie en mémoire concernée.
+
+Pour accélérer la lecture des historiques importants sur une base partagée, appliquer **`supabase/09_read_performance.sql` après les migrations 01 à 08**. Cette migration rejouable ajoute un index `(department, id)` sans modifier les données, les calculs ou les droits. Le site reste compatible avant son application. Les gains de chargement du build local ne constituent pas une mesure de latence d’une base distante.
 
 Sans configuration Supabase, le site fonctionne en **mode local**, avec les 16 presses, 3 articles et 63 relevés du classeur. Les modifications sont enregistrées dans le stockage de ce navigateur, pour cette adresse. Un autre navigateur, un autre port ou un autre appareil ne partage pas cette sauvegarde. Exporter les données depuis Configuration avant de vider le navigateur.
 
@@ -88,6 +98,7 @@ Créer votre projet sur Supabase. Dans **SQL Editor**, exécuter, dans cet ordre
 5. `supabase/05_planning_public_access.sql` : quantité planifiée et accès direct à l’atelier.
 6. `supabase/06_loss_categories.sql` : nouvelles causes de pertes, validation du journal et mise à jour du temps machine.
 7. `supabase/07_departments.sql` : espaces Assemblage, Métallisation et Sérigraphie, catalogues fournis, paramètres historiques et séparation des données.
+8. `supabase/08_welding.sql` : activation Soudure, article et ligne fournis, contrôle des paramètres et des pertes.
 
 **Base déjà installée :** exécuter les migrations manquantes `03`, `04`, `05_planning_public_access.sql`, puis `06_loss_categories.sql`. Si les migrations `03` à `05` sont déjà en place, exécuter seulement `06`. Aucun changement du `.env` n’est nécessaire si les deux variables Supabase sont déjà valides.
 

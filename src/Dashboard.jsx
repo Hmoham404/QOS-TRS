@@ -2,13 +2,12 @@ import { useDepartmentText } from "./DepartmentContext.jsx";
 import { departmentConfig, targetForRows } from "./departments.js";
 import ChartPointValue from "./ChartPointValue";
 import { unplannedTypesFor } from "./losses.js";
-import { t as translate } from "./i18n.js";
-import React, { useState } from "react";
+import { getLocale, t as translate } from "./i18n.js";
+import React, { useMemo, useState } from "react";
 import { Activity, Clock3, Gauge, ShieldCheck, ArrowUpRight, Factory, Download, AlertTriangle, Target, Layers3, BarChart3, ChevronRight } from "lucide-react";
 import { LabelList, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, BarChart, Bar, Cell, Legend } from "recharts";
 import { aggregate, calculate, percent, formatNumber as num, dateLabel, SHIFTS } from "./domain";
-import { Empty, Badge } from "./App";
-import { motion } from "motion/react";
+import { Empty, Badge } from "./ui.jsx";
 import AnalyticsPanels from "./AnalyticsPanels";
 const series = {
   trs: {
@@ -66,39 +65,39 @@ export default function Dashboard({
   const [metric, setMetric] = useState("trs");
   const chartTarget = metric === "trs" ? target : metric === "dle" ? dleTarget : null;
   const UNPLANNED_TYPES = unplannedTypesFor(data.department);
-  const s = aggregate(rows);
-  const days = [...new Set(rows.map(r => r.date))].sort().map(date => {
-    const a = aggregate(rows.filter(r => r.date === date));
+  const locale = getLocale();
+  const {s,days,presses,shifts,warnings} = useMemo(() => {
+    // Group once instead of scanning the complete history for every day/line.
+    const byDate=new Map(), byPress=new Map(), byShift=new Map();
+    for (const row of rows) {
+      for (const [groups,key] of [[byDate,row.date],[byPress,row.press_id],[byShift,row.shift]]) {
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(row);
+      }
+    }
     return {
-      date: dateLabel(date),
-      ...Object.fromEntries(Object.keys(series).map(k => [k, a[k] == null ? null : a[k] * 100]))
+      s: aggregate(rows),
+      days: [...byDate.keys()].sort().map(date => {
+        const a=aggregate(byDate.get(date));
+        return {date:dateLabel(date),...Object.fromEntries(Object.keys(series).map(k=>[k,a[k]==null?null:a[k]*100]))};
+      }),
+      presses: data.presses.filter(p=>byPress.has(p.id)).map(p=>({...p,rows:byPress.get(p.id),...aggregate(byPress.get(p.id))})).sort((a,b)=>(b.trs??-1)-(a.trs??-1)),
+      shifts: SHIFTS.map(shift=>{
+        const a=aggregate(byShift.get(shift)||[]);
+        return {name:translate(shift),TRS:a.trs==null?null:a.trs*100,DLE:a.dle==null?null:a.dle*100};
+      }),
+      warnings: rows.filter(r=>(calculate(r).performance??0)>1),
     };
-  });
-  const presses = data.presses.map(p => ({
-    ...p,
-    rows: rows.filter(r => r.press_id === p.id)
-  })).filter(p => p.rows.length).map(p => ({
-    ...p,
-    ...aggregate(p.rows)
-  })).sort((a, b) => (b.trs ?? -1) - (a.trs ?? -1));
-  const shifts = SHIFTS.map(shift => {
-    const a = aggregate(rows.filter(r => r.shift === shift));
-    return {
-      name: translate(shift),
-      TRS: a.trs == null ? null : a.trs * 100,
-      DLE: a.dle == null ? null : a.dle * 100
-    };
-  });
-  const warnings = rows.filter(r => (calculate(r).performance ?? 0) > 1);
+  }, [rows,data.presses,locale]);
   const downtime = UNPLANNED_TYPES.map(([key, type]) => ({name: type.label, value: s[key], color: type.color})).filter(item => item.value > 0).sort((a,b) => b.value - a.value);
   const totalStops = downtime.reduce((a, b) => a + b.value, 0);
   const cards = [["availability", translate("Disponibilité"), translate("Du temps requis"), Clock3], ["performance", translate("Performance"), translate("À la cadence théorique"), Gauge], ["quality", translate("Qualité"), translate("Pièces conformes"), ShieldCheck]];
   return <>
-    <motion.div className="kpi-grid" initial={{opacity:0}} animate={{opacity:1}}><section className="kpi hero-kpi"><div className="kpi-label"><span><Activity size={18} />{translate("TRS GLOBAL")}</span><span className="tiny-chip">{translate("ATELIER")}</span></div><div className="hero-number">{s.trs == null ? "—" : num(s.trs * 100, 1)}<span>{s.trs == null ? "" : "%"}</span></div><div className="hero-bottom"><span><Target size={15} />{translate("Objectif ")}{num(target * 100)} %</span><span>{s.trs == null ? translate("Sans production") : `${s.trs >= target ? "+" : ""}${num((s.trs - target) * 100, 1)} pts`}</span></div><div className="kpi-track"><span style={{
+    <div className="kpi-grid"><section className="kpi hero-kpi"><div className="kpi-label"><span><Activity size={18} />{translate("TRS GLOBAL")}</span><span className="tiny-chip">{translate("ATELIER")}</span></div><div className="hero-number">{s.trs == null ? "—" : num(s.trs * 100, 1)}<span>{s.trs == null ? "" : "%"}</span></div><div className="hero-bottom"><span><Target size={15} />{translate("Objectif ")}{num(target * 100)} %</span><span>{s.trs == null ? translate("Sans production") : `${s.trs >= target ? "+" : ""}${num((s.trs - target) * 100, 1)} pts`}</span></div><div className="kpi-track"><span style={{
             width: Math.max(0, Math.min((s.trs || 0) * 100, 100)) + "%"
           }} /></div><span className="orb orb-one" /><span className="orb orb-two" /></section>{cards.map(([key, label, sub, Icon]) => <section className={`kpi metric-${key}`} key={key}><div className="kpi-label"><span>{translate(label)}</span><span className="metric-icon"><Icon size={20} /></span></div><div className="kpi-number">{s[key] == null ? "—" : num(s[key] * 100, 1)}<span>{s[key] == null ? "" : "%"}</span></div><div className="kpi-detail"><span className="metric-dot" />{sub}</div><div className="kpi-track"><span style={{
             width: Math.min((s[key] || 0) * 100, 100) + "%"
-          }} /></div></section>)}</motion.div>
+          }} /></div></section>)}</div>
     <div className="production-strip"><div><span className="strip-icon"><Layers3 size={19} /></span><span>{translate("Pièces conformes")}<strong>{num(s.good)} <small>{translate("pcs")}</small></strong></span></div><div><span>{translate("Rebuts")}<strong>{num(s.rejects)} <small>{translate("pcs")}</small></strong></span></div><div><span>{translate("Temps machine")}<strong>{num(s.runtime / 60, 1)} <small>{translate("h")}</small></strong></span></div><div><span>{translate("Rendement main-d’œuvre")}<strong>{percent(s.dle)} <small>{translate("DLE")}</small></strong></span></div><div className="strip-records"><span>{rows.length}{translate(" relevés")}<span className="strip-sub">{presses.length}{translate(" presses renseignées / ")}{data.presses.length}</span></span></div></div>
     <AnalyticsPanels rows={rows} data={data} onEdit={onEdit} />
     <div className="section-divider historical-divider"><div><span className="section-kicker">{translate("PRENDRE DU RECUL")}</span><h2>{translate("Les tendances de l’atelier.")}</h2></div><span className="table-subtitle">{translate("Synthèse de la période")}</span></div>

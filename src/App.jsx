@@ -1,3 +1,4 @@
+import { IconButton, Empty, Badge } from './ui.jsx';
 import { exportColumns } from "./export-columns.js";
 import { getLocale, t as translate } from "./i18n.js";
 import { departmentConfig, departmentScope, targetStorageKey } from "./departments.js";
@@ -7,39 +8,18 @@ import LanguageSelector from "./LanguageSelector.jsx";
 import ThemeSwitcher from "./ThemeSwitcher.jsx";
 import DepartmentSwitcher, { DEPARTMENTS, EmptyDepartment, getSavedDepartment } from "./DepartmentSwitcher.jsx";
 import ExcelExport from "./ExcelExport.jsx";
-import React, { useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ChartNoAxesCombined, LayoutDashboard, ClipboardPenLine, History, Factory, Settings2, ChevronRight, Plus, Monitor, Download, RefreshCw, LogOut, Database, X, AlertCircle, Check, Menu, ArrowUpRight, FileSpreadsheet, SlidersHorizontal } from "lucide-react";
 import { configured, configError, loadData, download, dataScope } from "./data";
 import PwaControls from "./PwaControls";
 import DraftList from "./DraftList";
 import { SHIFTS, calculate, percent, formatNumber as num, dateLabel, today } from "./domain";
-import Dashboard from "./Dashboard";
-import Curves from "./Curves.jsx";
-import Entry from "./Entry";
-import References from "./References";
-import PressScene from "./PressScene";
 import DailyReview from "./DailyReview";
 import { yesterday } from "./daily";
-export function IconButton({
-  children,
-  label,
-  ...props
-}) {
-  return <button type="button" className="icon-button" aria-label={translate(label)} title={translate(label)} {...props}>{children}</button>;
-}
-export function Empty({
-  title = translate("Aucun relevé sur cette période"),
-  text = translate("Modifiez les filtres ou ajoutez une saisie de production."),
-  children
-}) {
-  return <div className="empty"><div className="empty-icon"><ClipboardPenLine size={28} /></div><h3>{translate(title)}</h3><p>{translate(text)}</p>{children}</div>;
-}
-export function Badge({
-  value,
-  target = .85
-}) {
-  return <span className={`badge ${value == null ? "neutral" : value > 1 ? "warning" : value >= target ? "success" : "warning"}`}>{value == null ? translate("Non calculable") : value > 1 ? translate("À vérifier") : value >= target ? translate("Objectif atteint") : translate("Sous objectif")}</span>;
-}
+const Dashboard = lazy(() => import('./Dashboard.jsx'));
+const Curves = lazy(() => import('./Curves.jsx'));
+const Entry = lazy(() => import('./Entry.jsx'));
+const References = lazy(() => import('./References.jsx'));
 export function exportCSV(rows, data) {
   const { headers: rawHeaders, extras, primaryBreakdown } = exportColumns(data.department);
   const headers = rawHeaders.map(translate);
@@ -131,22 +111,29 @@ function Workshop({ department, onDepartmentChange }) {
     const n = Number(localStorage.getItem(targetStorageKey(department)) ?? config.trs * 100);
     return Number.isFinite(n) && n > 0 && n <= 100 ? n : config.trs * 100;
   });
-  async function refresh() {
+  const refreshVersion = useRef(0);
+  async function refresh(options = {}) {
+    const version = ++refreshVersion.current;
     setBusy(true);
     try {
-      const next = await loadData(department);
+      const next = await loadData(department, options);
+      if (version !== refreshVersion.current) return;
       setData(next);
       setError("");
-      const dates = next.records.map(r => r.date).sort();
+      let first = '', last = '';
+      for (const row of next.records) {
+        if (!first || row.date < first) first = row.date;
+        if (row.date > last) last = row.date;
+      }
       setFilters(f => ({
         ...f,
-        from: f.from || dates[0] || today(),
-        to: f.to || dates.at(-1) || today()
+        from: f.from || first || today(),
+        to: f.to || last || today()
       }));
     } catch (e) {
-      setError(e.message);
+      if (version === refreshVersion.current) setError(e.message);
     } finally {
-      setBusy(false);
+      if (version === refreshVersion.current) setBusy(false);
     }
   }
   useEffect(() => {
@@ -155,7 +142,7 @@ function Workshop({ department, onDepartmentChange }) {
   useEffect(() => {
     if (!configured || !isEnabled || page === "entry") return;
     const sync = () => {
-      if (navigator.onLine && document.visibilityState === "visible") refresh();
+      if (navigator.onLine && document.visibilityState === "visible") refresh({maxAge: 30000});
     };
     const timer = setInterval(sync, 60000);
     window.addEventListener("online", sync);
@@ -193,8 +180,9 @@ function Workshop({ department, onDepartmentChange }) {
     }
   }
   const canWrite = role === "admin" || role === "operator";
+  const filtered = useMemo(() => data?.records.filter(r => (!filters.from || r.date >= filters.from) && (!filters.to || r.date <= filters.to) && (filters.press === "all" || r.press_id === filters.press) && (filters.shift === "all" || r.shift === filters.shift)) || [], [data, filters]);
   if (configError) return <div className="config-screen"><AlertCircle /><h1>{translate("Configuration à compléter")}</h1><p>{translate(configError)}</p><PwaControls shared /></div>;
-  const filtered = data?.records.filter(r => (!filters.from || r.date >= filters.from) && (!filters.to || r.date <= filters.to) && (filters.press === "all" || r.press_id === filters.press) && (filters.shift === "all" || r.shift === filters.shift)) || [];
+
   const edit = r => {
     setActiveDraft(null);
     setEditing(r);
@@ -250,6 +238,7 @@ function Workshop({ department, onDepartmentChange }) {
               ...filters,
               shift: e.target.value
             })}><option value="all">{translate("Tous les postes")}</option>{SHIFTS.map(s => <option key={s} value={s}>{translate(s)}</option>)}</select><IconButton label={translate("Actualiser les données")} onClick={refresh} disabled={busy}><RefreshCw size={18} className={busy ? "pulse" : ""} /></IconButton></div>}
+      <Suspense fallback={<div className="loading" role="status"><RefreshCw className="pulse" />{translate("Chargement des données…")}</div>}>
       {page === "daily" && <DailyReview data={data} date={dailyDate} onDateChange={setDailyDate} onEdit={canWrite ? edit : undefined} onNew={canWrite ? newDaily : undefined} onRefresh={refresh} busy={busy} onExport={rows => exportCSV(rows, data)} />}
       {page === "dashboard" && <Dashboard rows={filtered} data={data} target={target / 100} onNew={() => go("entry")} meeting={meeting} onEdit={canWrite ? edit : undefined} onExport={() => exportCSV(filtered, data)} />}
       {page === "curves" && <Curves rows={filtered} data={data} target={target / 100} press={filters.press} />}
@@ -270,6 +259,7 @@ function Workshop({ department, onDepartmentChange }) {
             setTarget(n);
             localStorage.setItem(targetStorageKey(department), String(n));
           }} />}
+      </Suspense>
       </>}
       <footer className="footer"><span>QOS <span>/</span>{" "}{translate("Atelier")} {translate(selectedDepartment.name)}</span><span>{translate("Des données utiles. Des décisions concrètes.")}</span></footer></div>
     </main>{notice && <div className="toast" role="status"><Check size={19} />{translate(notice)}<IconButton label={translate("Fermer la notification")} onClick={() => setNotice("")}><X size={16} /></IconButton></div>}

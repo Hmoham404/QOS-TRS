@@ -22,7 +22,7 @@ test('Toutes les pages changent de langue, les préférences persistent et l’a
       await page.getByRole('navigation').getByRole('button',{name:label(navigation,language),exact:true}).click();
       await expect(page.locator('h1')).toContainText(label(title,language));
       if (navigation === 'Vue d’ensemble') {
-        expect(await page.locator('.shift-chart .recharts-bar-rectangle').count()).toBeGreaterThan(0);
+        await expect.poll(()=>page.locator('.shift-chart .recharts-bar-rectangle').count()).toBeGreaterThan(0);
         await page.screenshot({path:`.runtime/workspace-${language}-desktop.png`,fullPage:true});
       }
       if (language !== 'fr') {
@@ -46,20 +46,14 @@ test('Toutes les pages changent de langue, les préférences persistent et l’a
   expect(errors).toEqual([]);
 });
 
-test('Les espaces configurés sont accessibles, Soudure reste vide et Injection conserve ses données', async ({ page }) => {
+test('Les cinq espaces sont accessibles et Injection conserve ses données', async ({ page }) => {
   await page.goto('/');
   for (const department of ['Assemblage','Soudure','Métallisation','Sérigraphie']) {
     await page.getByRole('button',{name:'Changer de département',exact:true}).click();
     await page.getByRole('group',{name:'Choisir un département'}).getByRole('button',{name:department,exact:true}).click();
-    if (department === 'Soudure') {
-      await expect(page.locator('h1')).toContainText(department);
-      await expect(page.getByRole('heading',{name:'Aucune donnée dans ce département'})).toBeVisible();
-      await expect(page.getByRole('button',{name:'Nouvelle saisie',exact:true})).toHaveCount(0);
-    } else {
-      await expect(page.locator('h1')).toContainText('Bilan journalier de l’atelier');
-      await expect(page.locator('.daily-fleet tbody tr')).toHaveCount(1);
-      await expect(page.getByRole('button',{name:'Nouvelle saisie',exact:true})).toBeVisible();
-    }
+    await expect(page.locator('h1')).toContainText('Bilan journalier de l’atelier');
+    await expect(page.locator('.daily-fleet tbody tr')).toHaveCount(1);
+    await expect(page.getByRole('button',{name:'Nouvelle saisie',exact:true})).toBeVisible();
   }
   await page.reload(); await expect(page.locator('.breadcrumb')).toContainText('Sérigraphie');
   await page.getByRole('button',{name:'Changer de département',exact:true}).click();

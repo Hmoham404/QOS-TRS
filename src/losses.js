@@ -29,7 +29,7 @@ export function stopTypesFor(department = 'injection') {
   if (department === 'injection') return STOP_TYPES;
   const overrides = department === 'metallization'
     ? { mold: 'Panne Vaccum', peripherals: 'Panne ligne de peinture', changeover: 'Changement de référence' }
-    : { peripherals: 'Panne four', changeover: 'Changement de référence' };
+    : { peripherals: 'Panne four', changeover: 'Changement de référence', ...(department === 'welding' ? { material: 'Rupture SFIN' } : {}) };
   const keys = department === 'metallization'
     ? ['staffing','mold','peripherals','quality_stop','material','power','adjustment','startup','changeover','other','planned']
     : ['staffing','breakdown',...(department === 'screen-printing' ? ['peripherals'] : []),'quality_stop','material','power','adjustment','startup','changeover','other','planned'];

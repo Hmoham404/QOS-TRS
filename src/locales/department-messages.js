@@ -41,6 +41,8 @@ const entries = [
   ['Panne Vaccum','Vacuum breakdown','عطل التفريغ','Guasto vuoto','真空设备故障'],
   ['Panne ligne de peinture','Paint line breakdown','عطل خط الطلاء','Guasto linea verniciatura','涂装线故障'],
   ['Panne four','Oven breakdown','عطل الفرن','Guasto forno','烘炉故障'],
+  ['Rupture SFIN','Semi-finished goods shortage','نقص المنتجات نصف المصنعة','Mancanza di semilavorati','半成品短缺'],
+  ['Rupture SFIN (min)','Semi-finished goods shortage (min)','نقص المنتجات نصف المصنعة (دقيقة)','Mancanza di semilavorati (min)','半成品短缺（分钟）'],
   ['Changement de référence','Reference change','تغيير المرجع','Cambio riferimento','换产品'],
   ['Panne Vaccum (min)','Vacuum breakdown (min)','عطل التفريغ (دقيقة)','Guasto vuoto (min)','真空设备故障（分钟）'],
   ['Panne ligne de peinture (min)','Paint line breakdown (min)','عطل خط الطلاء (دقيقة)','Guasto linea verniciatura (min)','涂装线故障（分钟）'],
@@ -56,5 +58,6 @@ const entries = [
   ['Cette cause de perte ne concerne pas ce département.','This loss category does not apply to this department.','سبب الخسارة لا يخص هذا القسم.','Questa causa di perdita non riguarda questo reparto.','此损失原因不适用于该车间。'],
   ['Choisissez un équipement et un article de ce département.','Choose equipment and an article from this department.','اختر معدة ومنتجًا من هذا القسم.','Scegli un’attrezzatura e un articolo di questo reparto.','请选择该车间的设备与产品。'],
   ['Exécutez supabase/07_departments.sql dans SQL Editor pour activer les espaces de production.','Run supabase/07_departments.sql in SQL Editor to enable the production spaces.','نفّذ supabase/07_departments.sql في SQL Editor لتفعيل مساحات الإنتاج.','Esegui supabase/07_departments.sql in SQL Editor per attivare gli spazi di produzione.','请在SQL Editor中执行supabase/07_departments.sql以启用生产空间。'],
+  ['Exécutez supabase/08_welding.sql dans SQL Editor pour activer l’atelier Soudure.','Run supabase/08_welding.sql in SQL Editor to enable the Welding workshop.','نفّذ supabase/08_welding.sql في SQL Editor لتفعيل ورشة اللحام.','Esegui supabase/08_welding.sql in SQL Editor per attivare il reparto Saldatura.','请在SQL Editor中执行supabase/08_welding.sql以启用焊接车间。'],
 ];
 export default Object.fromEntries(entries.map(([source,en,ar,it,zh]) => [source,{en,ar,it,zh}]));

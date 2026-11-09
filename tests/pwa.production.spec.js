@@ -1,4 +1,20 @@
 import {test,expect} from '@playwright/test';
+
+test('Le premier écran évite les bibliothèques de graphiques, Excel et Supabase en mode local',async({browser})=>{
+  const context=await browser.newContext({serviceWorkers:'block'});
+  try {
+    const page=await context.newPage(), scripts=[];
+    page.on('request',request=>{if(request.resourceType()==='script')scripts.push(request.url());});
+    await page.goto('/');
+    await expect(page.getByLabel('Date du bilan journalier')).toBeVisible();
+    expect(scripts.some(url=>/\/(charts|supabase|exceljs|Dashboard|Curves|Entry|References)-/.test(url))).toBe(false);
+    await page.getByRole('button',{name:'Vue d’ensemble',exact:true}).click();
+    await expect(page.locator('.hero-number')).toBeVisible();
+    expect(scripts.some(url=>/\/charts-/.test(url))).toBe(true);
+    expect(scripts.some(url=>/\/(supabase|exceljs)-/.test(url))).toBe(false);
+  } finally {await context.close();}
+});
+
 async function ready(page){
   await page.goto('/');
   await page.evaluate(async()=>{await navigator.serviceWorker.ready;});

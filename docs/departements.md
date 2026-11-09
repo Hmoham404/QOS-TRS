@@ -1,8 +1,8 @@
-# Espaces Métallisation, Sérigraphie et Assemblage
+# Espaces Métallisation, Sérigraphie, Assemblage et Soudure
 
-Les trois départements disposent des mêmes parcours qu’Injection : bilan journalier, vue d’ensemble, courbes, saisie, journal des arrêts, historique, références, exports Excel/CSV et sauvegarde JSON.
+Les quatre départements disposent des mêmes parcours qu’Injection : bilan journalier, vue d’ensemble, courbes, saisie, journal des arrêts, historique, références, exports Excel/CSV et sauvegarde JSON.
 
-Chaque département possède une couleur d’identification : émeraude pour Injection, bleu cobalt pour Assemblage, graphite et bleu glacier pour Métallisation, prune pour Sérigraphie et jaune doré pour Soudure. Elle s’applique au menu, aux boutons principaux, aux bandeaux et aux repères de navigation, en jour comme en nuit. Cinq emblèmes SVG originaux représentent respectivement un moule, des pièces assemblées, une pièce métallisée, un cadre de sérigraphie et une torche de soudure. Le nom et le logo du département restent visibles sur mobile. Les couleurs de statut et des causes de pertes conservent leur signification métier.
+Chaque département possède une couleur d’identification : émeraude pour Injection, bleu cobalt pour Assemblage, graphite et bleu glacier pour Métallisation, prune pour Sérigraphie et rouge pour Soudure. Elle s’applique au menu, aux boutons principaux, aux bandeaux et aux repères de navigation, en jour comme en nuit. Cinq emblèmes SVG originaux représentent respectivement un moule, des pièces assemblées, une pièce métallisée, un cadre de sérigraphie et une torche de soudure. Le nom et le logo du département restent visibles sur mobile. Les couleurs de statut et des causes de pertes conservent leur signification métier.
 
 ## Paramètres fournis
 
@@ -12,13 +12,15 @@ La Sérigraphie contient Base KIKO `2.4.30051` : cycle de 5 s, standard de 7,5 s
 
 L’Assemblage contient Compact KIKO `3.3.30273` : cycle de 3,26 s, standard de 42,35 s, effectif standard de 13 et objectifs TRS/DLE de 80 %.
 
+La Soudure contient Base+insert soudés KIKO `2.4.30049` : cycle de 5,94 s, standard de 11,88 s, effectif standard de 2 et objectifs TRS/DLE de 80 %.
+
 Ces cycles sont utilisés directement **par pièce**, sans division par un nombre d’empreintes. Les temps standards proviennent des tableaux ; ils ne sont pas recalculés depuis l’effectif standard. Les deux références GM portent le même libellé « Cover GM Belotti », conformément à la source ; leur code les distingue.
 
 ## Équipements et données
 
-Une ligne initiale configurable est proposée dans chaque espace (« Ligne Métallisation », « Ligne Sérigraphie », « Ligne Assemblage »). Il s’agit d’un point de saisie à renommer ou compléter avec les équipements réels, sans prétendre inventorier tout l’atelier.
+Une ligne initiale configurable est proposée dans chaque espace (« Ligne Métallisation », « Ligne Sérigraphie », « Ligne Assemblage », « Ligne Soudure »). Il s’agit d’un point de saisie à renommer ou compléter avec les équipements réels, sans prétendre inventorier tout l’atelier.
 
-Aucun relevé de production n’est inventé ou copié depuis Injection. Soudure conserve son espace réservé en attendant ses paramètres.
+Aucun relevé de production n’est inventé ou copié depuis Injection.
 
 Les références, relevés, filtres, brouillons, caches hors connexion et préférences d’objectif sont séparés par département. Injection conserve sa clé de stockage existante et ses données. Les sauvegardes JSON et fichiers Excel identifient le département.
 
@@ -29,10 +31,11 @@ Les causes communes sont : manque d’effectif, problème qualité, rupture MP, 
 - Métallisation ajoute « Panne Vaccum » et « Panne ligne de peinture ».
 - Sérigraphie ajoute « Panne machine » et « Panne four ».
 - Assemblage ajoute « Panne machine ».
+- Soudure ajoute « Panne machine » et utilise « Rupture SFIN » à la place de « Rupture MP ».
 
 Le doublon « Problème qualité » des tableaux est regroupé en une seule catégorie. Les pauses planifiées restent disponibles séparément, comme dans Injection. Les causes sont reprises dans les champs de durée, le journal horodaté, le Pareto, le bilan journalier, les courbes de pertes et les exports.
 
-Pour préserver la compatibilité du schéma et des sauvegardes, `mold_breakdown_min` désigne la panne Vaccum en Métallisation ; `peripherals_min` désigne la panne de ligne de peinture en Métallisation et la panne du four en Sérigraphie. Le département permet de traduire ces champs en causes métier. Les catégories qui ne concernent pas un département sont refusées par les validations locales et SQL.
+Pour préserver la compatibilité du schéma et des sauvegardes, `mold_breakdown_min` désigne la panne Vaccum en Métallisation ; `peripherals_min` désigne la panne de ligne de peinture en Métallisation et la panne du four en Sérigraphie ; `material_shortage_min` désigne la rupture SFIN en Soudure. Le département permet de traduire ces champs en causes métier. Les catégories qui ne concernent pas un département sont refusées par les validations locales et SQL.
 
 ## DLE et historique
 
@@ -59,4 +62,6 @@ Pour une base Supabase existante, appliquer **`supabase/07_departments.sql` apr�
 
 La migration peut être rejouée. Elle ne crée aucun relevé de production. Une ancienne base peut continuer à ouvrir Injection ; les nouveaux espaces affichent la migration nécessaire au lieu d’utiliser les données Injection ou une base locale de substitution.
 
-La reprise SQL d’une sauvegarde d’un nouveau département nécessite également la migration 07. Les références déjà présentes sont conservées, comme pour la reprise Injection ; pour une restauration de références modifiées, vérifier ces conflits avant l’import.
+Pour Soudure, appliquer ensuite **`supabase/08_welding.sql`**. Cette migration ajoute la ligne et l’article fournis, contrôle les paramètres et les pertes de Soudure et expose le marqueur d’activation. Elle est rejouable sans écraser les références modifiées ni créer de relevé. Si elle manque, l’interface affiche le fichier à exécuter.
+
+La reprise SQL d’une sauvegarde d’un nouveau département nécessite également la migration 07, puis la migration 08 pour Soudure. Les références déjà présentes sont conservées, comme pour la reprise Injection ; pour une restauration de références modifiées, vérifier ces conflits avant l’import.

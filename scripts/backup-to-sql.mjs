@@ -25,7 +25,8 @@ if(department!=='injection') {
   }
   for(const index of [1,2])definitions[index][2].push('standard_operators','trs_target','dle_target');
 }
+const weldingPrerequisite = department === 'welding' ? ['-- Appliquer aussi 08_welding.sql avant cette reprise.'] : [];
 const lines=[...(department!=='injection'?['-- Appliquer aussi 07_departments.sql avant cette reprise.']:[]),'-- Reprise à exécuter en tant que propriétaire dans SQL Editor, après 01_schema.sql, 03_stop_journal.sql, 04_daily_review.sql 05_planning_public_access.sql et 06_loss_categories.sql.','-- Les lignes déjà présentes sont conservées. Préférer une base neuve pour une reprise exacte.','-- Le trigger est suspendu uniquement dans cette transaction pour conserver les instantanés historiques et les références archivées.','begin;','alter table public.production_records disable trigger prepare_production_record;'];
 for(const [table,items,keys] of definitions){if(items.length)lines.push(`insert into public.${table} (${keys.join(',')}) values\n${items.map(item=>'('+keys.map(k=>quote(item[k])).join(',')+')').join(',\n')}\non conflict do nothing;`);}
 lines.push('alter table public.production_records enable trigger prepare_production_record;','commit;');
-writeFileSync(output,lines.join('\n\n'),'utf8');console.log(`Reprise créée : ${data.records.length} relevés → ${output}`);
+writeFileSync(output,[...weldingPrerequisite,...lines].join('\n\n'),'utf8');console.log(`Reprise créée : ${data.records.length} relevés → ${output}`);
