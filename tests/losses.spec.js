@@ -33,7 +33,7 @@ test('Chaque courbe affiche ses valeurs, y compris zéro ; les valeurs absentes 
  const data=structuredClone(seed);data.records=data.records.slice(3,6).map((r,i)=>({...r,date:`2026-10-0${i+1}`,opening_min:480,planned_min:0,breakdown_min:0,startup_min:0,changeover_min:0,good_qty:i===0?0:100,startup_rejects:0,production_rejects:0,planned_qty:i===2?null:200}));
  await page.addInitScript(data=>localStorage.setItem('qos-injection-v1',JSON.stringify(data)),data);
  await page.goto('/');await page.getByRole('button',{name:'Courbes',exact:true}).click();
- for(const name of ['TRS global de l’atelier','DLE de l’atelier','TRS par machine','Taux de respect du planning']){
+ for(const name of ['OEE global de l’atelier','DLE de l’atelier','OEE par machine','Taux de respect du planning']){
   const chart=page.getByRole('region',{name,exact:true});
   await expect(chart.locator('.chart-point-value').first()).toBeVisible();
   expect(await chart.locator('.chart-point-value').count()).toBeGreaterThan(0);

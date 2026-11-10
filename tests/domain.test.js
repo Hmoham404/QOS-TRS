@@ -20,6 +20,6 @@ test('La synthèse pondère les temps et préserve les performances supérieures
 test('Les durées impossibles et les quantités invalides sont bloquées',()=>{
  const a=seed.records[3];assert.ok(validateRecord({...a,planned_min:500}).length);assert.ok(validateRecord({...a,good_qty:-1}).length);assert.ok(validateRecord({...a,good_qty:1.2}).length);assert.ok(validateRecord({...a,good_qty:NaN}).length);assert.ok(validateRecord({...a,date:'2026-02-31'}).length);assert.ok(validateRecord({...a,date:''}).length);assert.ok(validateRecord({...a,opening_min:0}).length);assert.ok(validateRecord({...a,planned_min:480,startup_min:0}).length);
 });
-test('Un poste requis sans production donne un TRS nul, une fermeture donne un TRS non calculable',()=>{
+test('Un poste requis sans production donne un OEE nul, une fermeture donne un OEE non calculable',()=>{
  const a={...seed.records[0],planned_min:0};assert.equal(calculate(a).trs,0);assert.equal(calculate(a).quality,null);assert.equal(calculate(seed.records[0]).trs,null);
 });

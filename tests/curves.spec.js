@@ -19,8 +19,8 @@ test('Courbes : quatre indicateurs, pertes, filtre par presse, dates et poste', 
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await openCurves(page);
-  for (const name of ['TRS global de l’atelier', 'TRS par machine', 'DLE de l’atelier', 'Taux de respect du planning']) await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Pertes du TRS · Atelier' })).toBeVisible();
+  for (const name of ['OEE global de l’atelier', 'OEE par machine', 'DLE de l’atelier', 'Taux de respect du planning']) await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pertes de l’OEE · Atelier' })).toBeVisible();
   await expect(page.getByTestId('curves-trs')).toHaveText('80,7 %');
   await expect(page.getByTestId('curves-planning')).not.toHaveText('—');
   await expect(page.locator('.curves-machines .curves-legend')).toContainText('D140.1');
@@ -28,11 +28,11 @@ test('Courbes : quatre indicateurs, pertes, filtre par presse, dates et poste', 
   await expect(page.locator('.curves-values tbody tr')).toHaveCount(7);
   const emptyDay = page.locator('.curves-values tbody tr').filter({ hasText: '4 octobre 2026' });
   await expect(emptyDay).toHaveCount(0);
-  await expect(page.getByRole('region', { name: 'TRS global de l’atelier', exact: true }).locator('.recharts-xAxis')).not.toContainText('04 oct.');
+  await expect(page.getByRole('region', { name: 'OEE global de l’atelier', exact: true }).locator('.recharts-xAxis')).not.toContainText('04 oct.');
   await page.screenshot({ path: '.runtime/curves-desktop.png', fullPage: true });
   const press = seed.presses.find(p => p.name === 'D140.1');
-  const machineChart = page.getByRole('region', { name: 'TRS par machine', exact: true });
-  const machineSelect = page.getByLabel('Presse du graphique TRS par machine');
+  const machineChart = page.getByRole('region', { name: 'OEE par machine', exact: true });
+  const machineSelect = page.getByLabel('Presse du graphique OEE par machine');
   await expect(machineChart.locator('.recharts-line')).toHaveCount(3);
   await machineSelect.selectOption(press.id);
   await expect(machineChart.locator('.recharts-line')).toHaveCount(1);
@@ -40,7 +40,7 @@ test('Courbes : quatre indicateurs, pertes, filtre par presse, dates et poste', 
   await expect(machineChart.locator('.curves-legend')).not.toContainText('D230.1');
   await expect(page.getByLabel('Filtrer par presse')).toHaveValue('all');
   await expect(page.getByTestId('curves-trs')).toHaveText('80,7 %');
-  await expect(page.getByRole('heading', { name: 'Pertes du TRS · Atelier' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pertes de l’OEE · Atelier' })).toBeVisible();
   await machineChart.screenshot({ path: '.runtime/trs-machine-selected.png' });
   const missingPress = seed.presses.find(p => !seed.records.some(r => r.press_id === p.id));
   await machineSelect.selectOption(missingPress.id);
@@ -48,8 +48,8 @@ test('Courbes : quatre indicateurs, pertes, filtre par presse, dates et poste', 
   await machineSelect.selectOption('all');
   await expect(machineChart.locator('.recharts-line')).toHaveCount(3);
   await page.getByLabel('Filtrer par presse').selectOption(press.id);
-  await expect(page.getByRole('heading', { name: 'TRS · D140.1', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Pertes du TRS · D140.1' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'OEE · D140.1', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pertes de l’OEE · D140.1' })).toBeVisible();
   await expect(page.locator('.curves-machines .curves-legend')).not.toContainText('D230.1');
   await expect(page.locator('.curves-values thead th')).toHaveCount(5);
   await page.getByLabel('Date de début').fill('2026-10-08');
@@ -69,7 +69,7 @@ test('Courbes : aucun planning inventé et affichage mobile sans débordement', 
   await expect(page.getByTestId('curves-planning')).toHaveText('—');
   await page.setViewportSize({ width: 390, height: 844 });
   const press = seed.presses.find(p => p.name === 'D230.1');
-  await page.getByLabel('Presse du graphique TRS par machine').selectOption(press.id);
+  await page.getByLabel('Presse du graphique OEE par machine').selectOption(press.id);
   await expect(page.locator('.curves-machines .recharts-line')).toHaveCount(1);
   await expect(page.locator('.curves-machines .curves-legend')).toContainText('D230.1');
   await page.getByRole('button', { name: 'Afficher les histogrammes', exact: true }).click();
@@ -92,13 +92,13 @@ test('Le mode histogrammes conserve les données, les filtres et la presse séle
   page.on('pageerror', error => errors.push(error.message));
   await openCurves(page);
   const press = seed.presses.find(p => p.name === 'D140.1');
-  const machineSelect = page.getByLabel('Presse du graphique TRS par machine');
+  const machineSelect = page.getByLabel('Presse du graphique OEE par machine');
   await machineSelect.selectOption(press.id);
   await page.getByText('Voir les valeurs par jour', { exact: true }).click();
   const values = await page.locator('.curves-values tbody').innerText();
   await page.getByRole('button', { name: 'Afficher les histogrammes', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Afficher les courbes', exact: true })).toHaveAttribute('aria-pressed', 'false');
-  for (const name of ['TRS global de l’atelier', 'DLE de l’atelier', 'TRS par machine', 'Taux de respect du planning']) {
+  for (const name of ['OEE global de l’atelier', 'DLE de l’atelier', 'OEE par machine', 'Taux de respect du planning']) {
     const chart = page.getByRole('region', { name, exact: true });
     await expect(chart.locator('.recharts-bar')).toHaveCount(1);
     await expect(chart.locator('.recharts-line')).toHaveCount(0);

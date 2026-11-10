@@ -5,7 +5,7 @@ import {PGlite} from '@electric-sql/pglite';
 import {validateRecord,calculate} from '../src/domain.js';
 import {draftKey,writeDraft,readDraft,listDrafts,removeDraft} from '../src/drafts.js';
 const seed=JSON.parse(readFileSync(new URL('../src/seed.json',import.meta.url),'utf8'));
-test('Planification facultative, entière et indépendante du TRS',()=>{
+test('Planification facultative, entière et indépendante de l’OEE',()=>{
   const r=seed.records[3];
   for(const planned_qty of [undefined,null,0,6500,2147483647]){
     assert.deepEqual(validateRecord({...r,planned_qty}),[]);

@@ -12,7 +12,7 @@ test('Le planning compare les mêmes relevés, distingue zéro et absence et gar
   assert.equal(planningRate([]).rate, null);
 });
 
-test('Les pertes du TRS reconstituent le temps requis avec cadence et rebuts, hors pauses planifiées', () => {
+test('Les pertes de l’OEE reconstituent le temps requis avec cadence et rebuts, hors pauses planifiées', () => {
   const r = row({});
   const loss = trsLosses([r]);
   assert.deepEqual(['breakdown', 'startup', 'changeover', 'speed', 'quality'].map(key => loss.items.find(item => item.key === key).minutes), [10, 5, 5, 10, 10]);
@@ -52,7 +52,7 @@ test('Les courbes pondèrent les taux et affichent uniquement les jours saisis d
   assert.deepEqual(curveSeries([], presses), { days: [], machines: [] });
 });
 
-test('Un dimanche de repos est absent ; un dimanche saisi reste affiché, même avec un TRS nul', () => {
+test('Un dimanche de repos est absent ; un dimanche saisi reste affiché, même avec un OEE nul', () => {
   const presses = [{ id: 'a', name: 'A' }];
   const rows = [row({ date: '2026-10-05' }), row({ date: '2026-10-03' })];
   assert.deepEqual(curveSeries(rows, presses).days.map(day => day.date), ['2026-10-03', '2026-10-05']);

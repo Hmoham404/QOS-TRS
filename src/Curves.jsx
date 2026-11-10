@@ -131,7 +131,7 @@ export default function Curves({
     <div className="curves-kpis">
       {[{
         key: "trs",
-        label: press === "all" ? translate("TRS global atelier") : translate("TRS de la presse"),
+        label: press === "all" ? translate("OEE global atelier") : translate("OEE de la presse"),
         value: percent(totals.trs),
         detail: translate("Pondéré par le temps requis"),
         Icon: Activity
@@ -149,7 +149,7 @@ export default function Curves({
         Icon: CalendarCheck2
       }, {
         key: "losses",
-        label: translate("Pertes du TRS"),
+        label: translate("Pertes de l’OEE"),
         value: `${num(losses.total, 1)} min`,
         detail: translate("Arrêts, cadence et rebuts"),
         Icon: Clock3
@@ -163,9 +163,9 @@ export default function Curves({
     </div>
     {!rows.length ? <section className="panel curves-empty"><Activity size={28} /><h2>{translate("Aucun relevé sur cette période")}</h2><p>{translate("Modifiez les dates, la presse ou le poste pour afficher les courbes.")}</p></section> : <>
       <div className="curves-grid">
-        <ChartPanel title={press === "all" ? translate("TRS global de l’atelier") : `TRS · ${scope}`} subtitle={translate("RENDEMENT SYNTHÉTIQUE")} days={days} lines={[{
+        <ChartPanel title={press === "all" ? translate("OEE global de l’atelier") : `OEE · ${scope}`} subtitle={translate("RENDEMENT SYNTHÉTIQUE")} days={days} lines={[{
           key: "trs",
-          name: translate("TRS"),
+          name: translate("OEE"),
           color: "#159b81"
         }]} target={target} mode={chartMode}>{translate(" Temps théorique des pièces conformes / temps requis. Seuls les jours avec une saisie sont affichés, y compris un dimanche travaillé. ")}</ChartPanel>
         <ChartPanel title={press === "all" ? translate("DLE de l’atelier") : `DLE · ${scope}`} subtitle={translate("RENDEMENT MAIN-D’ŒUVRE")} days={days} lines={[{
@@ -173,7 +173,7 @@ export default function Curves({
           name: translate("DLE"),
           color: "#2b7f91"
         }]} target={dleTarget} mode={chartMode}>{translate(" Somme des heures acquises / somme des heures dépensées. Sans heures dépensées, le DLE est non calculable. ")}</ChartPanel>
-        <ChartPanel title={translate("TRS par machine")} subtitle={translate("COMPARAISON DES PRESSES")} className="curves-machines" days={machineDays} lines={machineLines} target={target} mode={chartMode} action={<label className="curves-machine-filter"><span>{translate("Presse")}</span><select aria-label={translate("Presse du graphique TRS par machine")} value={selectedMachine} onChange={event => setMachinePress(event.target.value)}><option value="all">{translate("Toutes les presses")}</option>{pressOptions.map(machine => <option key={machine.id} value={machine.id}>{machine.name}</option>)}</select></label>}>{translate(" Une série par presse renseignée. Le choix de presse dans ce graphique s’applique uniquement à cette comparaison. ")}</ChartPanel>
+        <ChartPanel title={translate("OEE par machine")} subtitle={translate("COMPARAISON DES PRESSES")} className="curves-machines" days={machineDays} lines={machineLines} target={target} mode={chartMode} action={<label className="curves-machine-filter"><span>{translate("Presse")}</span><select aria-label={translate("Presse du graphique OEE par machine")} value={selectedMachine} onChange={event => setMachinePress(event.target.value)}><option value="all">{translate("Toutes les presses")}</option>{pressOptions.map(machine => <option key={machine.id} value={machine.id}>{machine.name}</option>)}</select></label>}>{translate(" Une série par presse renseignée. Le choix de presse dans ce graphique s’applique uniquement à cette comparaison. ")}</ChartPanel>
         <section className="panel curves-panel" aria-label={translate("Taux de respect du planning")}>
           <div className="panel-heading"><div><span className="eyebrow">{translate("PRODUCTION & ENGAGEMENT")}</span><h2>{translate("Taux de respect du planning")}</h2></div></div>
           {planDays ? <><div className="curves-legend"><span><i style={{
@@ -185,15 +185,15 @@ export default function Curves({
             }]} target={1} mode={chartMode} /></> : <div className="curves-chart-empty"><CalendarCheck2 size={30} /><strong>{planning.count ? translate("Quantité planifiée totale nulle") : translate("Quantités planifiées non renseignées")}</strong><p>{translate("Renseignez une quantité planifiée supérieure à zéro dans la saisie pour calculer ce taux.")}</p></div>}
           <div className="curves-footnote">{translate("Pièces conformes / quantité planifiée × 100. ")}{num(planning.count)}{translate(" relevés avec planning sur ")}{num(rows.length)}{translate(" ; les relevés sans planning sont exclus des deux quantités. Un plan nul ne permet pas de calculer un taux.")}</div>
         </section>
-        <section className="panel curves-panel curves-losses" aria-label={translate("Pertes du TRS")}>
-          <div className="panel-heading"><div><span className="eyebrow">{translate("COMPRENDRE LES PERTES")}</span><h2>{translate("Pertes du TRS · ")}{scope}</h2></div></div>
-          {losses.total > 0 ? <><div className="curves-donut" role="img" aria-label={translate("Répartition des pertes du TRS : {0} minutes", [num(losses.total, 1)])}><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={losses.items.filter(item => item.minutes > 0)} dataKey="minutes" nameKey="name" innerRadius="57%" outerRadius="85%" paddingAngle={2} stroke="none" isAnimationActive={false}>{losses.items.filter(item => item.minutes > 0).map(item => <Cell key={item.key} fill={item.color} />)}</Pie><Tooltip content={<LossTooltip />} /></PieChart></ResponsiveContainer><div className="curves-donut-center"><strong>{num(losses.total / 60, 1)}{translate(" h")}</strong><span>{translate("de pertes")}</span></div></div><ul className="curves-loss-list">{losses.items.filter(item => item.minutes > 0).map(item => <li key={item.key}><span><i style={{
+        <section className="panel curves-panel curves-losses" aria-label={translate("Pertes de l’OEE")}>
+          <div className="panel-heading"><div><span className="eyebrow">{translate("COMPRENDRE LES PERTES")}</span><h2>{translate("Pertes de l’OEE · ")}{scope}</h2></div></div>
+          {losses.total > 0 ? <><div className="curves-donut" role="img" aria-label={translate("Répartition des pertes de l’OEE : {0} minutes", [num(losses.total, 1)])}><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={losses.items.filter(item => item.minutes > 0)} dataKey="minutes" nameKey="name" innerRadius="57%" outerRadius="85%" paddingAngle={2} stroke="none" isAnimationActive={false}>{losses.items.filter(item => item.minutes > 0).map(item => <Cell key={item.key} fill={item.color} />)}</Pie><Tooltip content={<LossTooltip />} /></PieChart></ResponsiveContainer><div className="curves-donut-center"><strong>{num(losses.total / 60, 1)}{translate(" h")}</strong><span>{translate("de pertes")}</span></div></div><ul className="curves-loss-list">{losses.items.filter(item => item.minutes > 0).map(item => <li key={item.key}><span><i style={{
                     background: item.color
                   }} />{item.name}</span><strong>{num(item.minutes, 1)} <small>{translate("min")}</small></strong><span>{percent(item.share)}</span></li>)}</ul></> : <div className="curves-chart-empty"><Clock3 size={30} /><strong>{translate("Aucune perte calculée")}</strong><p>{translate("Aucune durée d’arrêt, perte de cadence ou durée théorique de rebut sur ce périmètre.")}</p></div>}
           <div className="curves-footnote">{translate("Parts des pertes en minutes, hors pauses planifiées. Cadence : temps machine moins temps théorique de toutes les pièces ; rebuts : quantité rebutée × cycle théorique.")}{losses.speedGain > 0 && <p className="curves-gain"><Info size={15} />{translate("Les performances supérieures à 100 % représentent ")}{num(losses.speedGain, 1)}{translate(" min de gain théorique, affichées séparément et non soustraites du camembert.")}</p>}</div>
         </section>
       </div>
-      <details className="panel curves-values"><summary>{translate("Voir les valeurs par jour")}</summary><div className="table-scroll"><table><caption className="sr-only">{translate("Indicateurs quotidiens · ")}{scope}</caption><thead><tr><th>{translate("Date")}</th><th>{translate("TRS global")}</th><th>{translate("DLE")}</th><th>{translate("Respect du planning")}</th>{machines.map(machine => <th key={machine.id}>{translate("TRS ")}{machine.name}</th>)}</tr></thead><tbody>{days.map(day => <tr key={day.date}><td>{fullDate(day.date)}</td><td>{percent(day.trs)}</td><td>{percent(day.dle)}</td><td>{percent(day.planning)}</td>{machines.map(machine => <td key={machine.id}>{percent(day[machine.key])}</td>)}</tr>)}</tbody></table></div></details>
+      <details className="panel curves-values"><summary>{translate("Voir les valeurs par jour")}</summary><div className="table-scroll"><table><caption className="sr-only">{translate("Indicateurs quotidiens · ")}{scope}</caption><thead><tr><th>{translate("Date")}</th><th>{translate("OEE global")}</th><th>{translate("DLE")}</th><th>{translate("Respect du planning")}</th>{machines.map(machine => <th key={machine.id}>{translate("OEE ")}{machine.name}</th>)}</tr></thead><tbody>{days.map(day => <tr key={day.date}><td>{fullDate(day.date)}</td><td>{percent(day.trs)}</td><td>{percent(day.dle)}</td><td>{percent(day.planning)}</td>{machines.map(machine => <td key={machine.id}>{percent(day[machine.key])}</td>)}</tr>)}</tbody></table></div></details>
     </>}
   </div>;
 }

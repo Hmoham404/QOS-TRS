@@ -12,7 +12,7 @@ import AnalyticsPanels from "./AnalyticsPanels";
 const series = {
   trs: {
     get label() {
-      return translate("TRS");
+      return translate("OEE");
     },
     color: "#0e9b82"
   },
@@ -84,7 +84,7 @@ export default function Dashboard({
       presses: data.presses.filter(p=>byPress.has(p.id)).map(p=>({...p,rows:byPress.get(p.id),...aggregate(byPress.get(p.id))})).sort((a,b)=>(b.trs??-1)-(a.trs??-1)),
       shifts: SHIFTS.map(shift=>{
         const a=aggregate(byShift.get(shift)||[]);
-        return {name:translate(shift),TRS:a.trs==null?null:a.trs*100,DLE:a.dle==null?null:a.dle*100};
+        return {name:translate(shift),OEE:a.trs==null?null:a.trs*100,DLE:a.dle==null?null:a.dle*100};
       }),
       warnings: rows.filter(r=>(calculate(r).performance??0)>1),
     };
@@ -93,7 +93,7 @@ export default function Dashboard({
   const totalStops = downtime.reduce((a, b) => a + b.value, 0);
   const cards = [["availability", translate("Disponibilité"), translate("Du temps requis"), Clock3], ["performance", translate("Performance"), translate("À la cadence théorique"), Gauge], ["quality", translate("Qualité"), translate("Pièces conformes"), ShieldCheck]];
   return <>
-    <div className="kpi-grid"><section className="kpi hero-kpi"><div className="kpi-label"><span><Activity size={18} />{translate("TRS GLOBAL")}</span><span className="tiny-chip">{translate("ATELIER")}</span></div><div className="hero-number">{s.trs == null ? "—" : num(s.trs * 100, 1)}<span>{s.trs == null ? "" : "%"}</span></div><div className="hero-bottom"><span><Target size={15} />{translate("Objectif ")}{num(target * 100)} %</span><span>{s.trs == null ? translate("Sans production") : `${s.trs >= target ? "+" : ""}${num((s.trs - target) * 100, 1)} pts`}</span></div><div className="kpi-track"><span style={{
+    <div className="kpi-grid"><section className="kpi hero-kpi"><div className="kpi-label"><span><Activity size={18} />{translate("OEE GLOBAL")}</span><span className="tiny-chip">{translate("ATELIER")}</span></div><div className="hero-number">{s.trs == null ? "—" : num(s.trs * 100, 1)}<span>{s.trs == null ? "" : "%"}</span></div><div className="hero-bottom"><span><Target size={15} />{translate("Objectif ")}{num(target * 100)} %</span><span>{s.trs == null ? translate("Sans production") : `${s.trs >= target ? "+" : ""}${num((s.trs - target) * 100, 1)} pts`}</span></div><div className="kpi-track"><span style={{
             width: Math.max(0, Math.min((s.trs || 0) * 100, 100)) + "%"
           }} /></div><span className="orb orb-one" /><span className="orb orb-two" /></section>{cards.map(([key, label, sub, Icon]) => <section className={`kpi metric-${key}`} key={key}><div className="kpi-label"><span>{translate(label)}</span><span className="metric-icon"><Icon size={20} /></span></div><div className="kpi-number">{s[key] == null ? "—" : num(s[key] * 100, 1)}<span>{s[key] == null ? "" : "%"}</span></div><div className="kpi-detail"><span className="metric-dot" />{sub}</div><div className="kpi-track"><span style={{
             width: Math.min((s[key] || 0) * 100, 100) + "%"
@@ -128,7 +128,7 @@ export default function Dashboard({
             }} />)}</div><div className="stop-list">{downtime.map(d => <div key={d.name}><span><i style={{
                   background: d.color
                 }} />{d.name}</span><strong>{num(d.value)} <small>{translate("min")}</small></strong></div>)}</div><div className="planned-note"><Clock3 size={15} /><span>{translate("Arrêts planifiés")}</span><strong>{num(s.planned)}{translate(" min")}</strong></div></section></div>
-    <div className="bottom-grid"><section className="panel press-panel"><div className="panel-heading"><div><span className="eyebrow">{translate("VUE PAR ÉQUIPEMENT")}</span><h2>{translate("Performance des presses ")}<span className="count">{presses.length}</span></h2></div><button className="text-button" onClick={onExport}><Download size={15} />{translate("Exporter")}</button></div><div className="table-scroll"><table><thead><tr><th>{translate("Presse")}</th><th>{translate("Production conforme")}</th><th>{translate("TRS")}</th><th>{translate("Situation")}</th></tr></thead><tbody>{presses.map(p => <tr key={p.id}><td><span className="press-name"><span className="machine-icon"><Factory size={19} /></span><strong>{p.name}</strong></span></td><td>{num(p.good)} <span className="muted">{translate("pcs")}</span></td><td><div className="trs-cell"><strong>{percent(p.trs)}</strong><div className="row-track"><span style={{
+    <div className="bottom-grid"><section className="panel press-panel"><div className="panel-heading"><div><span className="eyebrow">{translate("VUE PAR ÉQUIPEMENT")}</span><h2>{translate("Performance des presses ")}<span className="count">{presses.length}</span></h2></div><button className="text-button" onClick={onExport}><Download size={15} />{translate("Exporter")}</button></div><div className="table-scroll"><table><thead><tr><th>{translate("Presse")}</th><th>{translate("Production conforme")}</th><th>{translate("OEE")}</th><th>{translate("Situation")}</th></tr></thead><tbody>{presses.map(p => <tr key={p.id}><td><span className="press-name"><span className="machine-icon"><Factory size={19} /></span><strong>{p.name}</strong></span></td><td>{num(p.good)} <span className="muted">{translate("pcs")}</span></td><td><div className="trs-cell"><strong>{percent(p.trs)}</strong><div className="row-track"><span style={{
                           width: Math.min((p.trs || 0) * 100, 100) + "%",
                           background: p.trs >= target ? "#159b81" : "#dda14e"
                         }} /></div></div></td><td><Badge value={p.trs} target={target} /></td></tr>)}</tbody></table></div><div className="table-note">{translate("Les presses sans relevé dans le périmètre ne sont pas classées.")}</div></section><section className="panel shift-panel"><div className="panel-heading"><div><span className="eyebrow">{translate("RYTHME DE PRODUCTION")}</span><h2>{translate("Comparaison des postes")}</h2></div><BarChart3 size={19} color="#87969d" /></div><div className="shift-chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={shifts} barGap={5} margin={{
@@ -142,7 +142,7 @@ export default function Dashboard({
                 }} /><YAxis axisLine={false} tickLine={false} tick={{
                   fontSize: 12,
                   fill: "#7a8b94"
-                }} tickFormatter={v => v + "%"} /><Tooltip content={<Tip />} /><Bar isAnimationActive={false} dataKey="TRS" fill="#138e7c" radius={[5, 5, 0, 0]} maxBarSize={30} name={translate("TRS")} /><Bar isAnimationActive={false} dataKey="DLE" fill="#a9d9cd" radius={[5, 5, 0, 0]} maxBarSize={30} name={translate("DLE")} /><Legend iconType="circle" iconSize={8} wrapperStyle={{
+                }} tickFormatter={v => v + "%"} /><Tooltip content={<Tip />} /><Bar isAnimationActive={false} dataKey="OEE" fill="#138e7c" radius={[5, 5, 0, 0]} maxBarSize={30} name={translate("OEE")} /><Bar isAnimationActive={false} dataKey="DLE" fill="#a9d9cd" radius={[5, 5, 0, 0]} maxBarSize={30} name={translate("DLE")} /><Legend iconType="circle" iconSize={8} wrapperStyle={{
                   fontSize: 12,
                   paddingTop: 10
                 }} /></BarChart></ResponsiveContainer></div></section></div>

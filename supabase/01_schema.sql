@@ -1,4 +1,4 @@
--- QOS / TRS Injection — à exécuter dans le SQL Editor de Supabase.
+-- QOS / OEE Injection — à exécuter dans le SQL Editor de Supabase.
 -- Tous les utilisateurs autorisés partagent le même atelier.
 begin;
 create table if not exists public.workshop_members (

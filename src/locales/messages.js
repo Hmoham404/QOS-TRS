@@ -692,7 +692,7 @@ export default {
     "it": "Qualità (%)",
     "zh": "质量（%）"
   },
-  "TRS (%)": {
+  "OEE (%)": {
     "en": "OEE (%)",
     "ar": "الفعالية الإجمالية (%)",
     "it": "OEE (%)",
@@ -1010,7 +1010,7 @@ export default {
     "it": "Scarti",
     "zh": "废品"
   },
-  "TRS": {
+  "OEE": {
     "en": "OEE",
     "ar": "الفعالية الإجمالية",
     "it": "OEE",
@@ -1148,7 +1148,7 @@ export default {
     "it": "Il README descrive la pubblicazione. I nuovi inserimenti locali non sono trasferiti automaticamente a Supabase.",
     "zh": "README说明了部署步骤。本地新增记录不会自动转移到Supabase。"
   },
-  "Objectif TRS": {
+  "Objectif OEE": {
     "en": "OEE target",
     "ar": "هدف الفعالية الإجمالية",
     "it": "Obiettivo OEE",
@@ -1214,7 +1214,7 @@ export default {
     "it": "Quantità conforme ÷ quantità totale",
     "zh": "合格数量 ÷ 总数量"
   },
-  "TRS atelier": {
+  "OEE atelier": {
     "en": "Workshop OEE",
     "ar": "فعالية الورشة الإجمالية",
     "it": "OEE del reparto",
@@ -1232,7 +1232,7 @@ export default {
     "it": "Ore maturate ÷ ore impiegate",
     "zh": "标准产出工时 ÷ 投入工时"
   },
-  "Les périodes sans temps requis sont non calculables. Les ratios dépassant 100 % sont conservés et signalés. Avec des cycles différents, le produit des trois taux agrégés peut différer du TRS global.": {
+  "Les périodes sans temps requis sont non calculables. Les ratios dépassant 100 % sont conservés et signalés. Avec des cycles différents, le produit des trois taux agrégés peut différer de l’OEE global.": {
     "en": "Periods without required time are not calculable. Ratios above 100% are retained and flagged. With different cycles, multiplying the aggregate rates may differ from total OEE.",
     "ar": "الفترات دون وقت مطلوب غير قابلة للحساب. تُحفظ النسب فوق 100٪ ويُشار إليها. عند اختلاف الدورات قد يختلف حاصل ضرب النسب المجمعة عن الفعالية الإجمالية.",
     "it": "I periodi senza tempo richiesto non sono calcolabili. I valori oltre il 100% sono mantenuti e segnalati. Con cicli diversi, il prodotto dei tassi aggregati può differire dall’OEE globale.",
@@ -1376,13 +1376,13 @@ export default {
     "it": "I filtri si applicano a tutti i grafici.",
     "zh": "筛选条件适用于所有图表。"
   },
-  "TRS global atelier": {
+  "OEE global atelier": {
     "en": "Overall workshop OEE",
     "ar": "فعالية الورشة الإجمالية",
     "it": "OEE globale reparto",
     "zh": "车间整体OEE"
   },
-  "TRS de la presse": {
+  "OEE de la presse": {
     "en": "Press OEE",
     "ar": "فعالية المكبس",
     "it": "OEE della pressa",
@@ -1424,7 +1424,7 @@ export default {
     "it": "{0} conformi / {1} pianificate",
     "zh": "{0}合格 / {1}计划"
   },
-  "Pertes du TRS": {
+  "Pertes de l’OEE": {
     "en": "OEE losses",
     "ar": "خسائر الفعالية",
     "it": "Perdite OEE",
@@ -1442,7 +1442,7 @@ export default {
     "it": "Modificare date, pressa o turno per visualizzare le curve.",
     "zh": "请更改日期、设备或班次以显示趋势。"
   },
-  "TRS global de l’atelier": {
+  "OEE global de l’atelier": {
     "en": "Overall workshop OEE",
     "ar": "الفعالية الإجمالية للورشة",
     "it": "OEE globale del reparto",
@@ -1478,7 +1478,7 @@ export default {
     "it": "Totale ore maturate / totale ore impiegate. Senza ore impiegate il DLE non è calcolabile.",
     "zh": "标准产出总工时 / 投入总工时。无投入工时则无法计算劳动效率。"
   },
-  "TRS par machine": {
+  "OEE par machine": {
     "en": "OEE by machine",
     "ar": "الفعالية حسب الآلة",
     "it": "OEE per macchina",
@@ -1490,7 +1490,7 @@ export default {
     "it": "CONFRONTO PRESSE",
     "zh": "设备比较"
   },
-  "Presse du graphique TRS par machine": {
+  "Presse du graphique OEE par machine": {
     "en": "Press for the machine OEE chart",
     "ar": "مكبس رسم الفعالية حسب الآلة",
     "it": "Pressa del grafico OEE per macchina",
@@ -1568,13 +1568,13 @@ export default {
     "it": "COMPRENDERE LE PERDITE",
     "zh": "了解损失"
   },
-  "Pertes du TRS ·": {
+  "Pertes de l’OEE ·": {
     "en": "OEE losses ·",
     "ar": "خسائر الفعالية ·",
     "it": "Perdite OEE ·",
     "zh": "OEE损失 ·"
   },
-  "Répartition des pertes du TRS : {0} minutes": {
+  "Répartition des pertes de l’OEE : {0} minutes": {
     "en": "OEE loss breakdown: {0} minutes",
     "ar": "توزيع خسائر الفعالية: {0} دقيقة",
     "it": "Ripartizione perdite OEE: {0} minuti",
@@ -1628,7 +1628,7 @@ export default {
     "it": "Indicatori giornalieri ·",
     "zh": "每日指标 ·"
   },
-  "TRS global": {
+  "OEE global": {
     "en": "Overall OEE",
     "ar": "الفعالية الإجمالية",
     "it": "OEE globale",
@@ -2042,7 +2042,7 @@ export default {
     "it": "Alla velocità teorica",
     "zh": "按理论速度"
   },
-  "TRS GLOBAL": {
+  "OEE GLOBAL": {
     "en": "OVERALL OEE",
     "ar": "الفعالية الإجمالية",
     "it": "OEE GLOBALE",
@@ -2642,7 +2642,7 @@ export default {
     "it": "Prestazione oltre il 100%. Verificare quantità e ciclo teorico.",
     "zh": "性能超过100%，请检查数量和理论周期。"
   },
-  "Poste sans temps requis : le TRS est non calculable.": {
+  "Poste sans temps requis : l’OEE est non calculable.": {
     "en": "No required time: OEE is not calculable.",
     "ar": "دون وقت مطلوب: الفعالية غير قابلة للحساب.",
     "it": "Senza tempo richiesto: OEE non calcolabile.",

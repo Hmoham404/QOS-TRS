@@ -2,7 +2,7 @@
   "id": "/",
   "name": "QOS · Atelier Injection",
   "short_name": "QOS Injection",
-  "description": "Production par poste, quantités planifiées, TRS et suivi des presses de l’atelier.",
+  "description": "Production par poste, quantités planifiées, OEE et suivi des presses de l’atelier.",
   "lang": "fr",
   "start_url": "/",
   "scope": "/",

@@ -2,7 +2,7 @@
 
 La saisie propose Manque d'effectif, Panne moule, Panne machine, Manque périphériques, Rupture MP, Problème qualité, Coupure d'énergie, Réglage et Autres pertes. Démarrage / arrêt et Changement de moule restent disponibles pour conserver la distinction et les données historiques. « Pannes » devient « Panne machine ».
 
-Chaque perte est une durée en minutes. Le temps requis est l'ouverture moins les arrêts planifiés. Le temps machine est le temps requis moins toutes les pertes de disponibilité. Le bilan quotidien, la disponibilité, la performance, les chronologies et le Pareto utilisent ce même calcul. Le TRS reste le temps théorique des pièces conformes divisé par le temps requis. Le problème qualité est un arrêt ; les rebuts constituent une perte distincte de pièces.
+Chaque perte est une durée en minutes. Le temps requis est l'ouverture moins les arrêts planifiés. Le temps machine est le temps requis moins toutes les pertes de disponibilité. Le bilan quotidien, la disponibilité, la performance, les chronologies et le Pareto utilisent ce même calcul. L’OEE reste le temps théorique des pièces conformes divisé par le temps requis. Le problème qualité est un arrêt ; les rebuts constituent une perte distincte de pièces.
 
 Avec le journal détaillé, les durées sont calculées depuis les intervalles horodatés. Les champs deviennent non modifiables et les intervalles ne sont jamais additionnés une seconde fois aux totaux. Les contraintes serveur vérifient également ces règles et refusent les chevauchements ou les temps impossibles.
 
@@ -10,7 +10,7 @@ Les données historiques sans nouveaux champs sont lues avec une valeur zéro. L
 
 Les exports XLSX et CSV ajoutent les huit colonnes après les trente colonnes existantes. Les références des formules du classeur sont conservées. La sauvegarde JSON et son outil de reprise SQL préservent également ces pertes.
 
-Les courbes du tableau de bord, TRS, DLE, TRS par machine, planning et cumul Pareto affichent les valeurs en pourcentage sur leurs points. Les zéros restent visibles, les valeurs non calculables n'affichent aucun chiffre. Les libellés et les nombres suivent la langue sélectionnée.
+Les courbes du tableau de bord, OEE, DLE, OEE par machine, planning et cumul Pareto affichent les valeurs en pourcentage sur leurs points. Les zéros restent visibles, les valeurs non calculables n'affichent aucun chiffre. Les libellés et les nombres suivent la langue sélectionnée.
 
 L'interface conserve la palette industrielle bleu et vert avec des cartes plus sobres, une meilleure hiérarchie, un groupe dédié aux pertes, un sous-total et une barre de répartition du temps. Le bandeau « Votre atelier. Une nouvelle perspective. » a été supprimé. Motion accompagne l'apparition des indicateurs par une transition d'opacité. Les dispositions et les libellés sont adaptés aux cinq langues et à l'arabe de droite à gauche.
 

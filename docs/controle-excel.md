@@ -15,7 +15,7 @@ Les 63 relevés ont été comparés aux cellules de `Saisie_Donnees`, lignes sou
 - R : disponibilité = L / H, non calculable si H = 0.
 - S : performance = M × Q / (L × 60), non calculable si L = 0.
 - T : qualité = N / M, non calculable si M = 0.
-- U : TRS = N × Q / (H × 60), équivalent au produit R × S × T avec production. Un poste requis sans production vaut 0 ; une fermeture sans temps requis est non calculable.
+- U : OEE = N × Q / (H × 60), équivalent au produit R × S × T avec production. Un poste requis sans production vaut 0 ; une fermeture sans temps requis est non calculable.
 - V : temps standard par pièce importé du classeur, conservé dans chaque relevé.
 - W : heures de main-d’œuvre préservées.
 - X : recette = V × N / 3600.

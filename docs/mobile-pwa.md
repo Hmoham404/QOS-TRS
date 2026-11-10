@@ -23,7 +23,7 @@ La migration est rejouable. Elle ajoute `production_records.planned_qty`, facult
 entier positif ou nul. Les anciens relevés gardent NULL (« non renseignée »).
 Zéro signifie bien zéro prévu. Le champ appartient à chaque relevé : date, poste,
 presse et article. Si plusieurs articles partagent un poste, répartir le plan entre
-leurs relevés. Les formules TRS et DLE restent inchangées.
+leurs relevés. Les formules OEE et DLE restent inchangées.
 
 Le plan apparaît dans la saisie, sa synthèse et l'historique, ainsi que dans les
 exports CSV, JSON et la reprise SQL. Le taux de réalisation affiché est

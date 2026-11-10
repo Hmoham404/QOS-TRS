@@ -28,7 +28,7 @@ for (const [department,name,loss] of [
   await page.goto('/');await selectDepartment(page,name);
   await expect(page.locator('.daily-fleet tbody tr')).toHaveCount(1);
   await navigate(page,'Configuration');
-  await expect(page.getByRole('heading',{name:'Objectifs TRS / DLE',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Objectifs OEE / DLE',exact:true})).toBeVisible();
   await expect(page.getByLabel('Objectif (%)',{exact:true})).toHaveCount(0);
   await navigate(page,'Équipements & articles');
   await page.getByRole('button',{name:/^Articles/}).click();
@@ -134,7 +134,7 @@ test('Configurer un article garde les standards historiques et applique les nouv
   await dialog.getByLabel('Temps de cycle (s / pièce)',{exact:true}).fill('4.2');
   await dialog.getByLabel('Temps standard (s / pièce)',{exact:true}).fill('18');
   await dialog.getByLabel('Effectif standard',{exact:true}).fill('2.5');
-  await dialog.getByLabel('Objectif TRS (%)',{exact:true}).fill('75');
+  await dialog.getByLabel('Objectif OEE (%)',{exact:true}).fill('75');
   await dialog.getByLabel('Objectif DLE (%)',{exact:true}).fill('82');
   await dialog.getByRole('button',{name:'Enregistrer',exact:true}).click();
   await expect(dialog).not.toBeVisible();
@@ -150,7 +150,7 @@ test('Configurer un article garde les standards historiques et applique les nouv
   await page.getByRole('button',{name:'Modifier Article assemblage test',exact:true}).click();
   await dialog.getByLabel('Temps standard (s / pièce)',{exact:true}).fill('38');
   await dialog.getByLabel('Effectif standard',{exact:true}).fill('5');
-  await dialog.getByLabel('Objectif TRS (%)',{exact:true}).fill('60');
+  await dialog.getByLabel('Objectif OEE (%)',{exact:true}).fill('60');
   await dialog.getByRole('button',{name:'Enregistrer',exact:true}).click();
   await expect(dialog).not.toBeVisible();
   await navigate(page,'Historique des relevés');await page.getByRole('button',{name:'Modifier',exact:true}).click();

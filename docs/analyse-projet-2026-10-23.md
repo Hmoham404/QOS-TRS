@@ -17,8 +17,8 @@ Application React 19, construite avec Vite et Tailwind CSS 4. Graphiques Rechart
 Parcours disponibles :
 
 - Bilan J−1 par presse et poste, avec chronologie si les horaires sont renseignés.
-- Tableau de bord TRS, disponibilité, performance, qualité et DLE.
-- Courbes ou histogrammes de TRS, DLE et réalisation du planning ; analyse des pertes.
+- Tableau de bord OEE, disponibilité, performance, qualité et DLE.
+- Courbes ou histogrammes d’OEE, DLE et réalisation du planning ; analyse des pertes.
 - Saisie, modification et historique des relevés ; journal détaillé des arrêts.
 - Gestion et archivage des presses et articles.
 - Export CSV, sauvegarde JSON et conversion d'une sauvegarde en SQL.
@@ -61,11 +61,11 @@ Les durées affichées par Playwright incluent un délai de fermeture des serveu
 
 ### Calculs et qualité des indicateurs
 
-Le TRS global est calculé depuis les temps théoriques cumulés des pièces conformes et les temps requis cumulés. Il n'utilise pas une moyenne simple des pourcentages par ligne. Les taux dont le dénominateur est nul restent non calculables ; un poste avec du temps requis mais aucune production a un TRS nul.
+L’OEE global est calculé depuis les temps théoriques cumulés des pièces conformes et les temps requis cumulés. Il n'utilise pas une moyenne simple des pourcentages par ligne. Les taux dont le dénominateur est nul restent non calculables ; un poste avec du temps requis mais aucune production a un OEE nul.
 
 Les valeurs supérieures à 100 % restent visibles et signalées. Le calcul des pertes sépare les gains de cadence des parts positives. Le planning exclut des deux quantités les relevés sans plan, et distingue un plan absent d'un plan égal à zéro.
 
-Les données de référence embarquées représentent 16 presses, 3 articles et 63 relevés : 219 520 pièces conformes, 1 250 rebuts, 311,5 heures machine, TRS agrégé de 80,7 %. Ce sont les données initiales du projet, pas une mesure de la production actuelle.
+Les données de référence embarquées représentent 16 presses, 3 articles et 63 relevés : 219 520 pièces conformes, 1 250 rebuts, 311,5 heures machine, OEE agrégé de 80,7 %. Ce sont les données initiales du projet, pas une mesure de la production actuelle.
 
 ### Cohérence de l'historique et des horaires
 

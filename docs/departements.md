@@ -6,13 +6,13 @@ Chaque département possède une couleur d’identification : émeraude pour Inj
 
 ## Paramètres fournis
 
-La Métallisation contient six références : Cover KIKO `2.3.30156`, Base KIKO `2.4.30050`, Cover PM Belotti `11600CO`, Base PM Belotti `11600BD`, et Cover GM Belotti `12900CO` et `12900BD`. Les quatre premières utilisent un cycle de 0,75 s et un standard de 22,5 s ; les deux dernières un cycle de 1,036 s et un standard de 31,08 s. L’effectif standard est de 30 et les objectifs TRS et DLE de 70 %.
+La Métallisation contient six références : Cover KIKO `2.3.30156`, Base KIKO `2.4.30050`, Cover PM Belotti `11600CO`, Base PM Belotti `11600BD`, et Cover GM Belotti `12900CO` et `12900BD`. Les quatre premières utilisent un cycle de 0,75 s et un standard de 22,5 s ; les deux dernières un cycle de 1,036 s et un standard de 31,08 s. L’effectif standard est de 30 et les objectifs OEE et DLE de 70 %.
 
-La Sérigraphie contient Base KIKO `2.4.30051` : cycle de 5 s, standard de 7,5 s, effectif standard de 1,5 et objectifs TRS/DLE de 80 %.
+La Sérigraphie contient Base KIKO `2.4.30051` : cycle de 5 s, standard de 7,5 s, effectif standard de 1,5 et objectifs OEE/DLE de 80 %.
 
-L’Assemblage contient Compact KIKO `3.3.30273` : cycle de 3,26 s, standard de 42,35 s, effectif standard de 13 et objectifs TRS/DLE de 80 %.
+L’Assemblage contient Compact KIKO `3.3.30273` : cycle de 3,26 s, standard de 42,35 s, effectif standard de 13 et objectifs OEE/DLE de 80 %.
 
-La Soudure contient Base+insert soudés KIKO `2.4.30049` : cycle de 5,94 s, standard de 11,88 s, effectif standard de 2 et objectifs TRS/DLE de 80 %.
+La Soudure contient Base+insert soudés KIKO `2.4.30049` : cycle de 5,94 s, standard de 11,88 s, effectif standard de 2 et objectifs OEE/DLE de 80 %.
 
 Ces cycles sont utilisés directement **par pièce**, sans division par un nombre d’empreintes. Les temps standards proviennent des tableaux ; ils ne sont pas recalculés depuis l’effectif standard. Les deux références GM portent le même libellé « Cover GM Belotti », conformément à la source ; leur code les distingue.
 
@@ -45,7 +45,7 @@ L’effectif standard est une référence, distincte des heures réellement dép
 
 Les cycles, standards, effectifs standards et objectifs sont conservés dans chaque relevé. Modifier un article s’applique aux futures saisies ; modifier un ancien relevé avec le même article conserve ses paramètres historiques. Changer l’article d’un relevé recharge les paramètres du nouvel article.
 
-Les objectifs par article apparaissent dans les références et la saisie. Les courbes utilisent les objectifs historiques des relevés, pondérés par le temps requis pour le TRS et par les heures dépensées pour le DLE. Sans relevé, les objectifs initiaux du département sont affichés.
+Les objectifs par article apparaissent dans les références et la saisie. Les courbes utilisent les objectifs historiques des relevés, pondérés par le temps requis pour l’OEE et par les heures dépensées pour le DLE. Sans relevé, les objectifs initiaux du département sont affichés.
 
 ## Activation de la base partagée
 

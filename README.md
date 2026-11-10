@@ -8,9 +8,9 @@ Le sélecteur **Traduction** propose le français, l’arabe, l’anglais, l’i
 
 Le sélecteur **Jour / Nuit** de la barre supérieure adapte les sept écrans, formulaires, tableaux, graphiques et dialogues. Il suit le thème du système au premier démarrage, puis conserve le choix explicite sur cet appareil, y compris hors connexion. Les onglets ouverts sur la même adresse se synchronisent. Le changement de thème conserve la saisie en cours. Le bandeau « Votre atelier. Une nouvelle perspective. » a été retiré pour donner plus de place aux indicateurs.
 
-Le sélecteur d’atelier ouvre Injection, Assemblage, Soudure, Métallisation et Sérigraphie. **Les quatre autres ateliers disposent des mêmes parcours qu’Injection**, avec leurs propres références, objectifs, effectifs standards et causes de pertes. Les relevés, brouillons et sauvegardes restent séparés ; aucun historique Injection n’est copié. Soudure utilise une identité rouge et la référence Base+insert soudés KIKO `2.4.30049` (cycle 5,94 s, standard 11,88 s, effectif 2, objectifs TRS/DLE 80 %). Le département sélectionné est mémorisé après rechargement. Voir [le guide des départements](docs/departements.md).
+Le sélecteur d’atelier ouvre Injection, Assemblage, Soudure, Métallisation et Sérigraphie. **Les quatre autres ateliers disposent des mêmes parcours qu’Injection**, avec leurs propres références, objectifs, effectifs standards et causes de pertes. Les relevés, brouillons et sauvegardes restent séparés ; aucun historique Injection n’est copié. Soudure utilise une identité rouge et la référence Base+insert soudés KIKO `2.4.30049` (cycle 5,94 s, standard 11,88 s, effectif 2, objectifs OEE/DLE 80 %). Le département sélectionné est mémorisé après rechargement. Voir [le guide des départements](docs/departements.md).
 
-**Base Supabase existante :** appliquer `supabase/07_departments.sql` après les migrations 01 à 06 pour activer les nouveaux espaces partagés. En mode local, leurs catalogues sont disponibles directement. Les objectifs TRS/DLE sont de 70 % en Métallisation et de 80 % en Sérigraphie et Assemblage. Les équipements initiaux sont des lignes configurables ; aucun relevé de production n’est créé.
+**Base Supabase existante :** appliquer `supabase/07_departments.sql` après les migrations 01 à 06 pour activer les nouveaux espaces partagés. En mode local, leurs catalogues sont disponibles directement. Les objectifs OEE/DLE sont de 70 % en Métallisation et de 80 % en Sérigraphie et Assemblage. Les équipements initiaux sont des lignes configurables ; aucun relevé de production n’est créé.
 
 Pour Soudure en mode partagé, appliquer ensuite `supabase/08_welding.sql`. Les pertes comprennent « Rupture SFIN » et une seule catégorie « Problème qualité ». Le mode local est disponible directement.
 
@@ -53,9 +53,9 @@ Sans configuration Supabase, le site fonctionne en **mode local**, avec les 16 p
 
 ## Ce qui est disponible
 
-- Tableau de bord : TRS, disponibilité, performance, qualité, DLE, production, courbes par indicateur, répartition des arrêts, comparaison des presses et des postes.
-- Page **Courbes** : TRS global, TRS par machine, DLE et respect du planning par jour, avec filtres de dates, presse et poste, mode réunion et valeurs quotidiennes consultables. Le planning compare les pièces conformes et les quantités planifiées sur les mêmes relevés ; une quantité absente est exclue, une somme planifiée nulle donne un taux non calculable. Le camembert des pertes TRS distingue pannes, démarrage/réglage, changement de moule, pertes de cadence et rebuts en minutes théoriques, hors pauses planifiées. Les gains de cadence supérieurs à la référence sont indiqués séparément pour conserver des parts positives. Les jours sans relevé restent sans valeur.
-- Filtres par dates, presse et poste, objectif TRS configurable et mode réunion (Échap pour quitter).
+- Tableau de bord : OEE, disponibilité, performance, qualité, DLE, production, courbes par indicateur, répartition des arrêts, comparaison des presses et des postes.
+- Page **Courbes** : OEE global, OEE par machine, DLE et respect du planning par jour, avec filtres de dates, presse et poste, mode réunion et valeurs quotidiennes consultables. Le planning compare les pièces conformes et les quantités planifiées sur les mêmes relevés ; une quantité absente est exclue, une somme planifiée nulle donne un taux non calculable. Le camembert des pertes OEE distingue pannes, démarrage/réglage, changement de moule, pertes de cadence et rebuts en minutes théoriques, hors pauses planifiées. Les gains de cadence supérieurs à la référence sont indiqués séparément pour conserver des parts positives. Les jours sans relevé restent sans valeur.
+- Filtres par dates, presse et poste, objectif OEE configurable et mode réunion (Échap pour quitter).
 - Saisie quotidienne avec date, poste, presse, moule/article, temps, quantités, rebuts, main-d’œuvre et commentaire.
 - Champs blancs manuels ; champs gris automatiques recalculés à chaque modification. Il ne s’agit pas d’une connexion aux automates des presses.
 - Historique consultable et modifiable, recherche, pagination et export CSV compatible Excel.
@@ -69,7 +69,7 @@ Sans configuration Supabase, le site fonctionne en **mode local**, avec les 16 p
 
 L’accueil **Bilan J−1** sélectionne la veille réelle selon la date locale de votre ordinateur. La date est modifiable, avec des boutons jour précédent/suivant et un retour J−1. Une journée sans relevé reste vide : elle n’est jamais remplacée silencieusement par la dernière journée saisie.
 
-Le bilan affiche chaque presse et ses postes, les heures de marche, les arrêts (pauses planifiées incluses), les pièces conformes et le TRS. **A travaillé** signifie que du temps machine a été déclaré dans cette journée ; ce n’est pas un état machine en temps réel. **Non renseignée** signifie qu’aucun relevé n’existe, et non que la presse était arrêtée.
+Le bilan affiche chaque presse et ses postes, les heures de marche, les arrêts (pauses planifiées incluses), les pièces conformes et l’OEE. **A travaillé** signifie que du temps machine a été déclaré dans cette journée ; ce n’est pas un état machine en temps réel. **Non renseignée** signifie qu’aucun relevé n’existe, et non que la presse était arrêtée.
 
 Chaque presse renseignée possède sa chronologie : en haut pendant la marche déclarée, en bas pendant les arrêts, avec durée et cause au survol ou au clic. Les journaux renseignés d’une même presse se placent à leurs heures réelles. Les plages sans journal sont hachurées, sans inventer leur état. La liste **Pauses & causes d’arrêt** distingue les événements horaires des simples totaux historiques par catégorie.
 
@@ -79,7 +79,7 @@ La vue d’ensemble, le Pareto et les autres analyses restent accessibles via **
 
 L’interface utilise une palette bleu–vert, des icônes Lucide et une presse illustrative en 3D CSS, orientable avec ses boutons. Cette illustration ne reçoit aucune télémétrie machine.
 
-1. **Production & arrêts** : sans horaires, un anneau et une barre interactive présentent les durées réellement enregistrées. Le pourcentage représente le temps de marche divisé par l’ouverture, pas le TRS. Aucun horaire n’est déduit des totaux. Avec un journal complet, cette vue devient une courbe marche/arrêt suivant les horaires saisis, y compris au passage de minuit.
+1. **Production & arrêts** : sans horaires, un anneau et une barre interactive présentent les durées réellement enregistrées. Le pourcentage représente le temps de marche divisé par l’ouverture, pas l’OEE. Aucun horaire n’est déduit des totaux. Avec un journal complet, cette vue devient une courbe marche/arrêt suivant les horaires saisis, y compris au passage de minuit.
 2. **Pareto des arrêts machine** : causes classées par minutes perdues, pourcentage cumulé et repère à 80 %. Les anciens relevés sont regroupés par catégorie ; les journaux détaillés apportent les causes saisies. Les arrêts planifiés sont inclus seulement à la demande.
 3. **Temps utile de production** : temps machine déclaré et arrêts par poste, ou par heure pour le relevé dont le journal est complet. Plusieurs presses cumulent des heures machine. Cette durée ne correspond pas au temps théorique des pièces conformes.
 
@@ -177,14 +177,14 @@ Quantité totale = conformes + rebuts démarrage + rebuts production
 Disponibilité = temps machine / temps requis
 Performance = quantité totale × cycle par pièce / (temps machine × 60)
 Qualité = conformes / quantité totale
-TRS = conformes × cycle par pièce / (temps requis × 60)
+OEE = conformes × cycle par pièce / (temps requis × 60)
 Recette (h) = conformes × temps standard / 3600
 DLE = recette / heures dépensées
 ```
 
-Les ratios n’ont pas de valeur quand leur dénominateur est nul. Un poste entièrement planifié à l’arrêt n’affiche pas artificiellement 0 % de TRS. Un poste avec du temps requis mais aucune production affiche 0 % de TRS.
+Les ratios n’ont pas de valeur quand leur dénominateur est nul. Un poste entièrement planifié à l’arrêt n’affiche pas artificiellement 0 % d’OEE. Un poste avec du temps requis mais aucune production affiche 0 % d’OEE.
 
-Le TRS ci-dessus équivaut au produit disponibilité × performance × qualité pour une ligne avec production. Une production sans temps machine est interdite. Les temps négatifs, les quantités fractionnaires et les arrêts dépassant l’ouverture sont également interdits.
+L’OEE ci-dessus équivaut au produit disponibilité × performance × qualité pour une ligne avec production. Une production sans temps machine est interdite. Les temps négatifs, les quantités fractionnaires et les arrêts dépassant l’ouverture sont également interdits.
 
 Les cycles et standards sont conservés **dans chaque relevé**. Modifier les paramètres d’un article ne recalcule pas le passé. Modifier l’article d’un relevé recharge ses nouveaux paramètres. Le SQL applique la même règle côté serveur.
 
@@ -196,15 +196,15 @@ Dans `Dashboard_TRS`, les formules initiales ne pointent que vers les lignes 4 �
 
 Le site utilise tous les relevés correspondant aux filtres et les vraies presses. Les taux de synthèse sont pondérés :
 
-- TRS = somme des temps théoriques des pièces conformes / somme des temps requis.
+- OEE = somme des temps théoriques des pièces conformes / somme des temps requis.
 - Disponibilité = somme des temps machine / somme des temps requis.
 - Performance = somme des temps théoriques de toutes les pièces / somme des temps machine.
 - Qualité = somme des conformes / somme des quantités totales.
 - DLE = somme des recettes / somme des heures dépensées.
 
-Avec plusieurs cycles différents, multiplier les trois taux agrégés ne donne pas nécessairement le TRS agrégé. Le TRS est donc calculé directement depuis les temps théoriques.
+Avec plusieurs cycles différents, multiplier les trois taux agrégés ne donne pas nécessairement l’OEE agrégé. L’OEE est donc calculé directement depuis les temps théoriques.
 
-Sur le classeur original : **219 520 pièces conformes**, **1 250 rebuts**, **311,5 heures machine**, **TRS de 80,7 %**. Treize relevés ont une performance supérieure à 100 % ; les valeurs sont conservées et signalées. L’objectif initial de 85 % est une proposition configurable, absent du fichier d’origine.
+Sur le classeur original : **219 520 pièces conformes**, **1 250 rebuts**, **311,5 heures machine**, **OEE de 80,7 %**. Treize relevés ont une performance supérieure à 100 % ; les valeurs sont conservées et signalées. L’objectif initial de 85 % est une proposition configurable, absent du fichier d’origine.
 
 ## Vérifications
 

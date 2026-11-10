@@ -9,7 +9,7 @@ alter table public.production_records drop constraint if exists production_plann
 alter table public.production_records add constraint production_planned_qty_valid
   check (planned_qty is null or planned_qty >= 0);
 comment on column public.production_records.planned_qty is
-  'Quantité planifiée en pièces pour ce relevé (date, poste, presse, article). NULL = non renseignée, 0 = zéro prévu. Ne modifie pas le TRS.';
+  'Quantité planifiée en pièces pour ce relevé (date, poste, presse, article). NULL = non renseignée, 0 = zéro prévu. Ne modifie pas l’OEE.';
 
 -- On conserve la RLS et les contraintes métier des migrations précédentes.
 do $$ declare t text; begin
