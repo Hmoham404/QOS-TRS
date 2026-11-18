@@ -2,6 +2,24 @@
 import departmentMessages from './department-messages.js';
 export default {
   ...departmentMessages,
+  "Trois échelles de temps sur une seule courbe": {"en":"Three time scales on one chart","ar":"ثلاثة مقاييس زمنية على منحنى واحد","it":"Tre scale temporali in un unico grafico","zh":"一张曲线展示三个时间尺度"},
+  "Les valeurs sont calculées à partir des relevés de chaque période. Les périodes sans données restent vides.": {"en":"Values are calculated from the records in each period. Periods without data remain empty.","ar":"تُحسب القيم من سجلات كل فترة، وتبقى الفترات دون بيانات فارغة.","it":"I valori sono calcolati sui dati di ogni periodo. I periodi senza dati rimangono vuoti.","zh":"数值根据各时段的记录计算，无数据的时段留空。"},
+  "3 derniers mois": {"en":"Last 3 months","ar":"آخر 3 أشهر","it":"Ultimi 3 mesi","zh":"最近3个月"},
+  "Mois actuel": {"en":"Current month","ar":"الشهر الحالي","it":"Mese corrente","zh":"本月"},
+  "Semaine actuelle": {"en":"Current week","ar":"الأسبوع الحالي","it":"Settimana corrente","zh":"本周"},
+  "Aucun relevé pour les périodes affichées.": {"en":"No records for the periods shown.","ar":"لا توجد سجلات للفترات المعروضة.","it":"Nessun dato per i periodi visualizzati.","zh":"所示时段没有记录。"},
+  "Voir la courbe": {"en":"View chart","ar":"عرض المنحنى","it":"Visualizza grafico","zh":"查看曲线"},
+  "Tout l’historique enregistré du département": {"en":"All recorded department history","ar":"كامل السجل المحفوظ للقسم","it":"Tutto lo storico registrato del reparto","zh":"部门全部历史记录"},
+  "Chaque point représente le taux du jour, de la semaine (lundi à dimanche) ou du mois. Les points sont placés au début de chaque période.": {"en":"Each point represents the rate for the day, week (Monday to Sunday), or month. Points are placed at the start of each period.","ar":"تمثل كل نقطة معدل اليوم أو الأسبوع (من الاثنين إلى الأحد) أو الشهر، وتوضع في بداية الفترة.","it":"Ogni punto rappresenta il tasso del giorno, della settimana (da lunedì a domenica) o del mese ed è posizionato all’inizio del periodo.","zh":"每个点表示日、周（周一至周日）或月的比率，位于对应时段的开始。"},
+  "Aucun relevé enregistré pour ce département.": {"en":"No records saved for this department.","ar":"لا توجد سجلات محفوظة لهذا القسم.","it":"Nessun dato registrato per questo reparto.","zh":"该部门没有已保存的记录。"},
+  "Comparaison des départements": {"en":"Department comparison","ar":"مقارنة الأقسام","it":"Confronto dei reparti","zh":"部门对比"},
+  "TOUS LES ATELIERS": {"en":"ALL WORKSHOPS","ar":"جميع الورش","it":"TUTTI I REPARTI","zh":"所有车间"},
+  "Une vue commune de la production": {"en":"A shared view of production","ar":"نظرة مشتركة على الإنتاج","it":"Una vista comune della produzione","zh":"生产总览"},
+  "Comparez les indicateurs de chaque département sur la même période.": {"en":"Compare each department’s indicators over the same period.","ar":"قارن مؤشرات كل قسم خلال الفترة نفسها.","it":"Confronta gli indicatori di ogni reparto nello stesso periodo.","zh":"比较各部门同一时期的指标。"},
+  "Sans dates, tous les relevés disponibles sont inclus. Les taux sont pondérés à partir des données de chaque atelier.": {"en":"Without dates, all available records are included. Rates are weighted using each workshop’s data.","ar":"في غياب التواريخ، تُدرج جميع السجلات المتاحة. تُحسب المعدلات المرجحة من بيانات كل ورشة.","it":"Senza date sono inclusi tutti i dati disponibili. I tassi sono ponderati sui dati di ogni reparto.","zh":"未选择日期时包含所有可用记录。比率根据各车间数据加权计算。"},
+  "DÉPARTEMENT": {"en":"DEPARTMENT","ar":"القسم","it":"REPARTO","zh":"部门"},
+  "Données indisponibles": {"en":"Data unavailable","ar":"البيانات غير متاحة","it":"Dati non disponibili","zh":"数据不可用"},
+  "Aucun relevé pour cette période.": {"en":"No records for this period.","ar":"لا توجد سجلات لهذه الفترة.","it":"Nessun dato per questo periodo.","zh":"该时段没有记录。"},
   "Panne machine": {
     "en": "Machine breakdown",
     "ar": "عطل الآلة",
@@ -1172,11 +1190,11 @@ export default {
     "it": "Un metodo trasparente",
     "zh": "透明的计算方法"
   },
-  "Les calculs par relevé reprennent le classeur. La synthèse utilise les temps et quantités cumulés.": {
-    "en": "Record calculations follow the workbook. The summary uses cumulative times and quantities.",
-    "ar": "تتبع حسابات السجل المصنف. يستخدم الملخص الأوقات والكميات التراكمية.",
-    "it": "I calcoli seguono il file originale. Il riepilogo usa tempi e quantità cumulati.",
-    "zh": "单条记录计算遵循原工作簿，汇总使用累计时间和数量。"
+  "La synthèse utilise les temps et quantités cumulés.": {
+    "en": "The summary uses cumulative times and quantities.",
+    "ar": "يستخدم الملخص الأوقات والكميات التراكمية.",
+    "it": "Il riepilogo usa tempi e quantità cumulati.",
+    "zh": "汇总使用累计时间和数量。"
   },
   "Disponibilité": {
     "en": "Availability",
@@ -1196,11 +1214,11 @@ export default {
     "it": "Prestazione",
     "zh": "性能"
   },
-  "Quantité totale × cycle ÷ temps machine en secondes": {
-    "en": "Total quantity × cycle ÷ machine time in seconds",
-    "ar": "الكمية الإجمالية × الدورة ÷ وقت الآلة بالثواني",
-    "it": "Quantità totale × ciclo ÷ tempo macchina in secondi",
-    "zh": "总数量 × 周期 ÷ 设备运行秒数"
+  "Quantité totale × cycle ÷ temps requis en secondes": {
+    "en": "Total quantity × cycle ÷ required time in seconds",
+    "ar": "الكمية الإجمالية × الدورة ÷ الوقت المطلوب بالثواني",
+    "it": "Quantità totale × ciclo ÷ tempo richiesto in secondi",
+    "zh": "总数量 × 周期 ÷ 计划生产秒数"
   },
   "Qualité": {
     "en": "Quality",
@@ -1232,11 +1250,11 @@ export default {
     "it": "Ore maturate ÷ ore impiegate",
     "zh": "标准产出工时 ÷ 投入工时"
   },
-  "Les périodes sans temps requis sont non calculables. Les ratios dépassant 100 % sont conservés et signalés. Avec des cycles différents, le produit des trois taux agrégés peut différer de l’OEE global.": {
-    "en": "Periods without required time are not calculable. Ratios above 100% are retained and flagged. With different cycles, multiplying the aggregate rates may differ from total OEE.",
-    "ar": "الفترات دون وقت مطلوب غير قابلة للحساب. تُحفظ النسب فوق 100٪ ويُشار إليها. عند اختلاف الدورات قد يختلف حاصل ضرب النسب المجمعة عن الفعالية الإجمالية.",
-    "it": "I periodi senza tempo richiesto non sono calcolabili. I valori oltre il 100% sono mantenuti e segnalati. Con cicli diversi, il prodotto dei tassi aggregati può differire dall’OEE globale.",
-    "zh": "无计划生产时间的期间无法计算。超过100%的比率会保留并标记。周期不同时，汇总比率的乘积可能不同于整体OEE。"
+  "Les périodes sans temps requis sont non calculables. Les ratios dépassant 100 % sont conservés et signalés. La performance inclut les pertes de disponibilité ; le produit disponibilité × performance × qualité ne correspond donc pas à l’OEE.": {
+    "en": "Periods without required time are not calculable. Ratios above 100% are retained and flagged. Performance includes availability losses, so availability × performance × quality does not equal OEE.",
+    "ar": "لا يمكن حساب الفترات دون وقت مطلوب. تُعرض النسب التي تتجاوز 100٪ مع التنبيه إليها. يشمل الأداء خسائر الإتاحة، لذا لا يساوي حاصل ضرب الإتاحة والأداء والجودة مؤشر OEE.",
+    "it": "I periodi senza tempo richiesto non sono calcolabili. I valori oltre il 100% sono mantenuti e segnalati. La prestazione include le perdite di disponibilità, quindi disponibilità × prestazione × qualità non equivale all’OEE.",
+    "zh": "没有计划生产时间的时段无法计算。超过100%的比率会保留并标记。性能包含可用率损失，因此可用率 × 性能 × 质量不等于OEE。"
   },
   "PILOTAGE INDUSTRIEL / INJECTION": {
     "en": "INDUSTRIAL MANAGEMENT / INJECTION",

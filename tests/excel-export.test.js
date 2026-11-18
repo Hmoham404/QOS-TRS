@@ -21,6 +21,8 @@ test('Export XLSX : vrais nombres et dates, 63 relevés, synthèse pondérée et
   assert.ok(details.getColumn(26).values.includes('=1+1'));
   assert.equal(summary.getCell('B7').result,219520);
   assert.equal(summary.getCell('B13').result,aggregate(rows).trs);
+  assert.equal(summary.getCell('B11').result,aggregate(rows).performance);
+  assert.match(summary.getCell('B11').formula, /H2:H64/);
   assert.ok(summary.getCell('B13').formula.includes('SUMPRODUCT'));
 });
 

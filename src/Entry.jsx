@@ -18,7 +18,7 @@ const defaultRecord = data => ({
   press_id: data.presses.find(p => p.active)?.id || "",
   article_id: data.articles.find(a => a.active)?.id || "",
   ...extraLossDefaults(),
-  opening_min: 480,
+  opening_min: 460,
   planned_min: 0,
   breakdown_min: 0,
   startup_min: 0,

@@ -7,7 +7,7 @@ const workbook=JSON.parse(readFileSync(new URL('../docs/workbook-analysis.json',
 const cells=Object.fromEntries(workbook.sheets.find(s=>s.name==='Saisie_Donnees').cells.map(c=>[c.cell,c.value]));
 test('Les 63 relevés reprennent les résultats Excel, y compris les postes sans production',()=>{
   assert.equal(seed.records.length,63);
-  for(const r of seed.records){assert.deepEqual(validateRecord(r),[]);const c=calculate(r);for(const [field,col] of Object.entries({required:'H',runtime:'L',total:'M',availability:'R',performance:'S',quality:'T',trs:'U',earned:'X',dle:'Y'})){const value=cells[col+r.source_row];if(value==null)assert.equal(c[field],null,`${col}${r.source_row}`);else assert.ok(Math.abs(c[field]-Number(value))<1e-10,`${col}${r.source_row}: ${c[field]} != ${value}`);}}
+  for(const r of seed.records){assert.deepEqual(validateRecord(r),[]);const c=calculate(r);for(const [field,col] of Object.entries({required:'H',runtime:'L',total:'M',availability:'R',quality:'T',trs:'U',earned:'X',dle:'Y'})){const value=cells[col+r.source_row];if(value==null)assert.equal(c[field],null,`${col}${r.source_row}`);else assert.ok(Math.abs(c[field]-Number(value))<1e-10,`${col}${r.source_row}: ${c[field]} != ${value}`);}}
 });
 test('Les cycles sont divisés par les empreintes',()=>{assert.equal(seed.articles[0].mold_cycle_seconds/seed.articles[0].cavities,4.875);});
 test('La synthèse pondère les temps et préserve les performances supérieures à 100 %',()=>{
@@ -15,6 +15,10 @@ test('La synthèse pondère les temps et préserve les performances supérieures
  const b={...a,opening_min:180,good_qty:3600,labor_hours:3};
  assert.equal(aggregate([a,b]).trs,.5);assert.equal(aggregate([a,b]).dle,.5);
  assert.equal(calculate({...a,good_qty:7200}).performance,2);
+ const stopped={...a,breakdown_min:30};
+ assert.equal(calculate(stopped).performance,1);
+ assert.equal(aggregate([stopped,b]).performance,.5);
+ assert.equal(calculate({...a,planned_min:60}).performance,null);
  assert.equal(aggregate([]).trs,null);assert.equal(aggregate([]).quality,null);
 });
 test('Les durées impossibles et les quantités invalides sont bloquées',()=>{

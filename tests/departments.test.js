@@ -118,6 +118,17 @@ test('Les migrations 07 et 08 sont rejouables, protègent les départements et c
   try {
     await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select null::uuid$$;`);
     for(const name of ['01_schema','02_import_excel','03_stop_journal','04_daily_review','05_planning_public_access','06_loss_categories','07_departments','07_departments','08_welding','08_welding'])await db.exec(readFileSync(new URL(`../supabase/${name}.sql`,import.meta.url),'utf8'));
+    const migration = readFileSync(new URL('../supabase/10_performance_required_time.sql',import.meta.url),'utf8');
+    await db.exec(migration); await db.exec(migration);
+    const seedRecords=JSON.parse(readFileSync(new URL('../src/seed.json',import.meta.url),'utf8')).records;
+    for (const row of seedRecords) {
+      const metric=(await db.query('select performance, trs from public.production_metrics where id=$1',[row.id])).rows[0];
+      for (const key of ['performance','trs']) {
+        const expected=calculate(row)[key];
+        if (expected===null) assert.equal(metric[key],null);
+        else assert.ok(Math.abs(Number(metric[key])-expected)<1e-10);
+      }
+    }
     assert.equal((await db.query("select count(*)::int n from public.production_records where department='injection'")).rows[0].n,63);
     assert.equal((await db.query('select count(*)::int n from public.articles')).rows[0].n,12);
     assert.equal((await db.query("select count(*)::int n from public.production_records where department='welding'")).rows[0].n,0);

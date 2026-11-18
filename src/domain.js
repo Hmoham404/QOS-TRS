@@ -20,7 +20,7 @@ export function calculate(r) {
     total,
     rejects: total - r.good_qty,
     availability: ratio(runtime, required),
-    performance: ratio(total * r.cycle_seconds, runtime * 60),
+    performance: ratio(total * r.cycle_seconds, required * 60),
     quality: ratio(r.good_qty, total),
     trs: ratio(r.good_qty * r.cycle_seconds, required * 60),
     earned,
@@ -60,7 +60,7 @@ export function aggregate(rows) {
   return {
     ...sum,
     availability: ratio(sum.runtime, sum.required),
-    performance: ratio(sum.ideal, sum.runtime * 60),
+    performance: ratio(sum.ideal, sum.required * 60),
     quality: ratio(sum.good, sum.total),
     trs: ratio(sum.goodIdeal, sum.required * 60),
     dle: ratio(sum.earned, sum.labor)

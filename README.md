@@ -32,6 +32,8 @@ Consulter [le guide mobile et publication](docs/mobile-pwa.md) pour le SQL, Verc
 
 ## Démarrage
 
+Pour une nouvelle saisie, le poste est prérempli avec 460 minutes d’ouverture et aucun arrêt planifié, soit 460 minutes de temps requis. Ces valeurs restent modifiables. Si le journal des arrêts horodatés est activé, les arrêts planifiés éventuels doivent être saisis comme événements : les totaux proviennent alors du journal.
+
 Prérequis : Node.js 22.12 ou plus récent.
 
 ```powershell
@@ -153,6 +155,8 @@ npm run preview
 
 Le serveur de développement n’est pas un hébergement de production. Les accès Vercel et les variables publiques Supabase doivent être configurés pour publier et partager les données. Le build local ne constitue pas une publication.
 
+La migration `supabase/10_performance_required_time.sql` doit être appliquée après les migrations 01 à 09 sur une base Supabase existante pour aligner sa vue de calcul sur la nouvelle formule. Elle ne modifie pas les relevés.
+
 ## Analyse et règles du classeur
 
 Le fichier contient quatre feuilles : `Données`, `Saisie_Donnees`, `Dashboard_TRS` et `Parametres_Moules`.
@@ -167,7 +171,7 @@ Date, poste, presse, code moule/article, temps d’ouverture, arrêts planifiés
 
 ### Champs automatiques
 
-La désignation et les temps proviennent de l’article. Les autres calculs reprennent les formules Excel :
+La désignation et les temps proviennent de l’article. La performance utilise le temps requis, contrairement au classeur original :
 
 ```text
 Cycle théorique par pièce = cycle du moule / nombre d’empreintes
@@ -175,7 +179,7 @@ Temps requis = ouverture − arrêts planifiés
 Temps machine = temps requis − pannes − démarrage/arrêt − changement de moule
 Quantité totale = conformes + rebuts démarrage + rebuts production
 Disponibilité = temps machine / temps requis
-Performance = quantité totale × cycle par pièce / (temps machine × 60)
+Performance = quantité totale × cycle par pièce / (temps requis × 60)
 Qualité = conformes / quantité totale
 OEE = conformes × cycle par pièce / (temps requis × 60)
 Recette (h) = conformes × temps standard / 3600
@@ -184,7 +188,7 @@ DLE = recette / heures dépensées
 
 Les ratios n’ont pas de valeur quand leur dénominateur est nul. Un poste entièrement planifié à l’arrêt n’affiche pas artificiellement 0 % d’OEE. Un poste avec du temps requis mais aucune production affiche 0 % d’OEE.
 
-L’OEE ci-dessus équivaut au produit disponibilité × performance × qualité pour une ligne avec production. Une production sans temps machine est interdite. Les temps négatifs, les quantités fractionnaires et les arrêts dépassant l’ouverture sont également interdits.
+La performance inclut les pertes de disponibilité ; le produit disponibilité × performance × qualité ne correspond donc plus à l’OEE. Une production sans temps machine est interdite. Les temps négatifs, les quantités fractionnaires et les arrêts dépassant l’ouverture sont également interdits.
 
 Les cycles et standards sont conservés **dans chaque relevé**. Modifier les paramètres d’un article ne recalcule pas le passé. Modifier l’article d’un relevé recharge ses nouveaux paramètres. Le SQL applique la même règle côté serveur.
 
@@ -204,7 +208,7 @@ Le site utilise tous les relevés correspondant aux filtres et les vraies presse
 
 Avec plusieurs cycles différents, multiplier les trois taux agrégés ne donne pas nécessairement l’OEE agrégé. L’OEE est donc calculé directement depuis les temps théoriques.
 
-Sur le classeur original : **219 520 pièces conformes**, **1 250 rebuts**, **311,5 heures machine**, **OEE de 80,7 %**. Treize relevés ont une performance supérieure à 100 % ; les valeurs sont conservées et signalées. L’objectif initial de 85 % est une proposition configurable, absent du fichier d’origine.
+Sur le classeur original : **219 520 pièces conformes**, **1 250 rebuts**, **311,5 heures machine**, **OEE de 80,7 %**. Les performances supérieures à 100 % sont conservées et signalées. L’objectif initial de 85 % est une proposition configurable, absent du fichier d’origine.
 
 ## Vérifications
 

@@ -13,7 +13,7 @@ test('Schéma PostgreSQL, import, calculs SQL, droits et conservation de l’his
   const seed=JSON.parse(readFileSync(new URL('../src/seed.json',import.meta.url),'utf8'));
   const metrics=(await db.query('select * from public.production_metrics')).rows;
   assert.equal(metrics.length,63);
-  for(const r of seed.records){const row=metrics.find(m=>m.id===r.id),c=calculate(r);for(const k of ['availability','performance','quality','trs','dle']){if(c[k]===null)assert.equal(row[k],null);else assert.ok(Math.abs(Number(row[k])-c[k])<1e-10);}}
+  for(const r of seed.records){const row=metrics.find(m=>m.id===r.id),c=calculate(r);for(const k of ['availability','quality','trs','dle']){if(c[k]===null)assert.equal(row[k],null);else assert.ok(Math.abs(Number(row[k])-c[k])<1e-10);}}
   const sample=seed.records[3];
   await db.query('update public.articles set mold_cycle_seconds=80, standard_seconds=10 where id=$1',[sample.article_id]);
   await db.query("update public.production_records set notes='test', cycle_seconds=123 where id=$1",[sample.id]);
