@@ -17,7 +17,7 @@ test('Journal détaillé, trois analyses et agrandissement sans bandeau promotio
  await expect(page.getByLabel('Panne machine',{exact:true})).toHaveValue('20');await expect(page.getByLabel('Panne machine',{exact:true})).toBeDisabled();
  await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();await expect(page.getByRole('status')).toContainText('Relevé enregistré');
  await page.getByRole('button',{name:'Vue d’ensemble',exact:true}).click();await expect(page.locator('.timeline-svg')).toBeVisible();
- await page.getByRole('button',{name:'Par heure',exact:true}).click();await expect(page.locator('.useful-total')).toContainText('7,5');
+ await page.getByRole('button',{name:'Par heure',exact:true}).click();await expect(page.locator('.useful-total')).toContainText('7,0');
  await page.getByRole('button',{name:/Défaut hydraulique, de/}).focus();await expect(page.locator('.timeline-reading')).toContainText('20,0 min');
  await page.getByRole('button',{name:'Agrandir : Production & arrêts',exact:true}).click();await expect(page.locator('dialog[open]')).toBeVisible();await page.keyboard.press('Escape');await expect(page.locator('dialog[open]')).toHaveCount(0);
  await page.screenshot({path:'.runtime/upgrade-desktop.png',fullPage:true});

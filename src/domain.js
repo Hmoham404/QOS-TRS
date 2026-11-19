@@ -2,6 +2,7 @@ import { EXTRA_LOSS_FIELDS, unplannedMinutes, UNPLANNED_TYPES, unplannedTypesFor
 import { validateTimeline } from './analytics.js';
 import { DEPARTMENT_IDS } from './departments.js';
 import { getLocale } from './i18n.js';
+import { shiftTimeErrors } from './shift-time.js';
 export const SHIFTS = ['Matin', 'Après-Midi', 'Nuit'];
 export const numericFields = [...EXTRA_LOSS_FIELDS, 'opening_min', 'planned_min', 'breakdown_min', 'startup_min', 'changeover_min', 'good_qty', 'startup_rejects', 'production_rejects', 'labor_hours'];
 export const ratio = (a, b) => b > 0 ? a / b : null;
@@ -84,7 +85,7 @@ export function validateRecord(r) {
   if (!(r.cycle_seconds > 0 && r.standard_seconds > 0)) errors.push('Le cycle et le temps standard doivent être supérieurs à zéro.');
   const c = calculate(r);
   if (c.runtime === 0 && c.total > 0) errors.push('Une production nécessite un temps machine supérieur à zéro.');
-  return [...errors, ...validateTimeline(r)];
+  return [...errors, ...shiftTimeErrors(r), ...validateTimeline(r)];
 }
 export const recordKey = r => [r.date, r.shift, r.press_id, r.article_id].join('|');
 const numberFormats = new Map(), dateFormats = new Map();

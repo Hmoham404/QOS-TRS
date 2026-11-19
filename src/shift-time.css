@@ -1,0 +1,5 @@
+.shift-time-overview{display:grid;grid-template-columns:1fr minmax(150px,220px);gap:20px;align-items:center;margin-bottom:24px;padding:18px 20px;border:1px solid var(--line,#d6e5e8);border-radius:12px;background:var(--surface-soft,#f5faf9)}
+.shift-time-overview p{margin:8px 0 0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.6}
+.shift-time-overview .auto-field{margin:0}
+.shift-time-fields{margin-bottom:12px}
+@media(max-width:760px){.shift-time-overview{grid-template-columns:1fr;gap:12px;padding:16px}.shift-time-overview p{font-size:14px}.shift-time-overview .auto-field{min-height:75px}}

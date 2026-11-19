@@ -32,7 +32,15 @@ Consulter [le guide mobile et publication](docs/mobile-pwa.md) pour le SQL, Verc
 
 ## Démarrage
 
-Pour une nouvelle saisie, le poste est prérempli avec 460 minutes d’ouverture et aucun arrêt planifié, soit 460 minutes de temps requis. Ces valeurs restent modifiables. Si le journal des arrêts horodatés est activé, les arrêts planifiés éventuels doivent être saisis comme événements : les totaux proviennent alors du journal.
+Pour une nouvelle saisie, le poste est prérempli avec **8 heures**, une pause de **20 min**, une réunion de **5 min** et **5 min de 5S**. Le **temps d’ouverture net** est donc **480 − 20 − 5 − 5 = 450 min**. Ces quatre durées sont modifiables ; l’ouverture est calculée automatiquement.
+
+Les **arrêts planifiés sont indépendants**, saisis manuellement (0 min par défaut). Le **temps requis = temps d’ouverture net − arrêts planifiés**. Exemple : 450 min d’ouverture et 15 min d’arrêts planifiés donnent 435 min de temps requis. Pause, réunion et 5S ne sont pas ajoutés aux arrêts planifiés.
+
+Après l’enregistrement d’un nouveau relevé, sa durée de poste et ses pauses sont proposées aux nouvelles saisies du même atelier sur cet appareil et pour cette base. Les arrêts planifiés des nouvelles saisies repartent à zéro. Passer à **12 h donne 720 − 20 − 5 − 5 = 690 min d’ouverture**, puis les arrêts planifiés supplémentaires sont déduits pour calculer le temps requis. Les anciennes lignes et les brouillons conservent leurs durées enregistrées ; aucun historique n’est recalculé automatiquement.
+
+Le journal horodaté décrit les arrêts supplémentaires dans le temps d’ouverture net : les pauses, réunions et 5S déjà déduits de l’ouverture ne doivent pas être saisis une deuxième fois. Les arrêts planifiés supplémentaires proviennent des événements du journal quand celui-ci est activé.
+
+**Base Supabase existante :** appliquer `supabase/11_shift_time.sql` puis `supabase/12_net_opening_time.sql` après les migrations 01 à 10. La migration 12 corrige aussi une base ayant déjà reçu la migration 11, sans réécrire les anciens relevés. Les sauvegardes JSON et leur reprise SQL conservent la durée brute du poste, le détail pause/réunion/5S, l’ouverture nette et les arrêts planifiés.
 
 Prérequis : Node.js 22.12 ou plus récent.
 
@@ -88,6 +96,13 @@ L’interface utilise une palette bleu–vert, des icônes Lucide et une presse 
 Dans la saisie, activer **Utiliser les arrêts horodatés**, renseigner le début du relevé et les débuts/fins d’arrêt en minutes depuis ce début. Les quatre totaux d’arrêt deviennent automatiques. Les plages ne peuvent pas se chevaucher ni dépasser l’ouverture ; les intervalles restants représentent la marche déclarée. Chaque graphique peut être agrandi pour la réunion.
 
 ## Installation Supabase
+
+### Mise à jour de la base existante
+
+Pour une base ayant déjà reçu les migrations 01 à 08, ouvrir **`supabase/UPDATE_SQL_EDITOR.sql`**, copier tout son contenu dans **Supabase → SQL Editor**, puis exécuter. Ce script unique applique l’index de lecture, la vue de calcul sur le temps requis et les champs de durée du poste avec leur contrainte finale. Il fonctionne avant ou après les migrations 09 à 12 et peut être rejoué sans réécrire les relevés, les références ou les droits. Son résultat final compte les relevés par département.
+
+Utiliser ce script pour les mises à jour suivantes ; ne pas réappliquer isolément l’ancienne migration 11 après la 12, car sa contrainte correspondait à la première interprétation des pauses. Aucun exemple fictif n’est inséré dans la base. Les exemples de « Une méthode transparente » restent propres à l’interface. L’ordre des départements et la carte DLE demandent de publier le site actualisé ; ils ne nécessitent pas d’INSERT SQL.
+
 
 ### 1. Créer la base
 

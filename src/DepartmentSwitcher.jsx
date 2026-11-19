@@ -7,10 +7,6 @@ export const DEPARTMENTS = [{
   name: "Injection",
   icon: InjectionLogo
 }, {
-  id: "assembly",
-  name: "Assemblage",
-  icon: AssemblyLogo
-}, {
   id: "welding",
   name: "Soudure",
   icon: WeldingLogo
@@ -22,6 +18,10 @@ export const DEPARTMENTS = [{
   id: "screen-printing",
   name: "Sérigraphie",
   icon: ScreenPrintingLogo
+}, {
+  id: "assembly",
+  name: "Assemblage",
+  icon: AssemblyLogo
 }];
 export function getSavedDepartment() {
   try {

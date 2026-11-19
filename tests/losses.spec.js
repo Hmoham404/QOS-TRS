@@ -11,7 +11,7 @@ test('Les neuf causes demandées se sauvegardent, se recalculent et restent trad
  await page.getByLabel('Quantité conforme',{exact:true}).fill('100');
  for(const [,type] of UNPLANNED_TYPES)await page.getByLabel(type.source,{exact:true}).fill('5');
  await expect(page.locator('.loss-subtotal')).toContainText('55,0');
- await expect(page.locator('.machine-time')).toContainText('425,0');
+ await expect(page.locator('.machine-time')).toContainText('395,0');
  await page.screenshot({path:'.runtime/losses-entry-desktop.png',fullPage:true});
  await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
  await expect(page.getByRole('status')).toContainText('Relevé enregistré');
@@ -60,7 +60,7 @@ test('Une perte du journal alimente les champs et le Pareto sans double comptage
  await page.getByLabel('Fin arrêt 1',{exact:true}).fill('30');
  await expect(page.getByLabel('Rupture MP',{exact:true})).toHaveValue('20');
  await expect(page.getByLabel('Rupture MP',{exact:true})).toBeDisabled();
- await expect(page.locator('.machine-time')).toContainText('460,0');
+ await expect(page.locator('.machine-time')).toContainText('430,0');
  await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
  await expect(page.getByRole('status')).toContainText('Relevé enregistré');
  await page.getByRole('button',{name:'Vue d’ensemble',exact:true}).click();

@@ -63,6 +63,7 @@ export async function saveRecord(record, department = 'injection') {
       let retry=record.updated_at?supabase.from('production_records').update(r).eq('id',r.id).eq('updated_at',record.updated_at):supabase.from('production_records').insert(r);
       ({data,error}=await retry.select());
     }
+    if(error?.code==='PGRST204' && /shift_duration_min|pause_min|meeting_min|five_s_min/.test(error.message)) throw new Error('Exécutez supabase/11_shift_time.sql puis supabase/12_net_opening_time.sql dans SQL Editor. Le brouillon est conservé.');
     if(error?.code==='PGRST204' && /staffing_min|mold_breakdown_min|peripherals_min|material_shortage_min|quality_stop_min|power_cut_min|adjustment_min|other_loss_min/.test(error.message)) throw new Error('Exécutez supabase/06_loss_categories.sql dans SQL Editor. Le brouillon et ses pertes sont conservés.');
     if(error)throw new Error(error.code==='23505'?'Un relevé existe déjà pour cette date, ce poste, cette presse et cet article. Modifiez-le depuis l’historique.':error.code==='PGRST204'&&/planned_qty/.test(error.message)?'Exécutez supabase/05_planning_public_access.sql dans SQL Editor. Le brouillon et sa quantité planifiée sont conservés.':error.message);
     if(!data?.length)throw new Error('Ce relevé a été modifié par un autre utilisateur. Actualisez avant de réessayer.');

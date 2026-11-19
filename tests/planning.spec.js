@@ -3,9 +3,9 @@ test('Quantité planifiée, brouillon après navigation et rechargement, sauvega
   await page.goto('/');
   await expect(page.getByLabel('Mot de passe',{exact:true})).toHaveCount(0);
   await page.getByRole('button',{name:'Saisie de production',exact:true}).click();
-  await expect(page.getByLabel('Temps d’ouverture')).toHaveValue('460');
-  await expect(page.getByLabel('Arrêts planifiés')).toHaveValue('0');
-  await expect(page.locator('.auto-field').filter({hasText:'Temps requis'})).toContainText('460,0');
+  await expect(page.getByLabel('Durée du poste')).toHaveValue('8');
+  await expect(page.getByLabel('Pause',{exact:true})).toHaveValue('20');
+  await expect(page.locator('.auto-field').filter({hasText:'Temps requis'})).toContainText('450,0');
   await page.getByLabel('Date de production').fill('2026-10-16');
   await page.getByLabel('Quantité planifiée',{exact:true}).fill('6000');
   await page.getByLabel('Quantité conforme',{exact:true}).fill('5000');

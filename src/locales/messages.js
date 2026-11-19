@@ -1,7 +1,11 @@
 // UI messages. French source keys are also the French fallback.
 import departmentMessages from './department-messages.js';
+import shiftTimeMessages from './shift-time-messages.js';
+import methodMessages from './method-messages.js';
 export default {
   ...departmentMessages,
+  ...shiftTimeMessages,
+  ...methodMessages,
   "Trois échelles de temps sur une seule courbe": {"en":"Three time scales on one chart","ar":"ثلاثة مقاييس زمنية على منحنى واحد","it":"Tre scale temporali in un unico grafico","zh":"一张曲线展示三个时间尺度"},
   "Les valeurs sont calculées à partir des relevés de chaque période. Les périodes sans données restent vides.": {"en":"Values are calculated from the records in each period. Periods without data remain empty.","ar":"تُحسب القيم من سجلات كل فترة، وتبقى الفترات دون بيانات فارغة.","it":"I valori sono calcolati sui dati di ogni periodo. I periodi senza dati rimangono vuoti.","zh":"数值根据各时段的记录计算，无数据的时段留空。"},
   "3 derniers mois": {"en":"Last 3 months","ar":"آخر 3 أشهر","it":"Ultimi 3 mesi","zh":"最近3个月"},
