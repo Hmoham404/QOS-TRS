@@ -70,6 +70,7 @@ test('La saisie reste fonctionnelle en anglais et le téléchargement XLSX respe
   await page.getByRole('combobox',{name:'Shift',exact:true}).selectOption({value:'Nuit'});
   await page.getByLabel('Good quantity',{exact:true}).fill('120');
   await page.getByLabel('Shift comment').fill('EN WORKSPACE TEST');
+  await page.locator('[name=operator_count]').fill('1');
   await page.getByRole('button',{name:'Save record',exact:true}).click();
   await expect(page.getByRole('status')).toContainText('Record saved successfully');
   await page.getByRole('textbox',{name:'Search records'}).fill('EN WORKSPACE TEST');
@@ -109,6 +110,7 @@ for (const language of ['ar','it','zh']) test(`La saisie en ${language} conserve
   await page.getByRole('button',{name:names.fr,exact:true}).click();
   await expect(page.getByLabel('Quantité conforme',{exact:true})).toHaveValue('150');
   await page.getByRole('button',{name:names[language],exact:true}).click();
+  if (await page.locator('[name=operator_count]').inputValue() === '') await page.locator('[name=operator_count]').fill('1');
   await page.getByRole('button',{name:label('Enregistrer le relevé',language),exact:true}).click();
   await expect(page.getByRole('status')).toContainText(label('Relevé enregistré avec succès.',language));
   await page.getByRole('textbox',{name:label('Rechercher un relevé',language)}).fill(`${language} WORKSPACE SAVE`);

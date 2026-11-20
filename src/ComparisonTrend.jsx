@@ -42,7 +42,7 @@ export function comparisonTrend(rows, metric, reference = today()) {
 }
 
 function PointLabel({x,y,value}) {
-  return value == null ? null : <text x={x} y={y-12} textAnchor="middle" fill="var(--text)" fontSize="11" fontWeight="700">{num(value,1)}%</text>;
+  return value == null ? null : <text x={x} y={y-18} textAnchor="middle" fill="var(--text)" fontSize="18" fontWeight="800">{num(value,1)}%</text>;
 }
 function ChartTooltip({active,payload}) {
   const point=payload?.[0]?.payload;

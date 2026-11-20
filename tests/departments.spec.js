@@ -54,13 +54,14 @@ for (const [department,name,loss] of [
   }
   await page.getByLabel('Date de production',{exact:true}).fill('2026-11-06');
   await page.getByLabel('Quantité conforme',{exact:true}).fill('100');
-  await page.getByLabel('Heures dépensées',{exact:true}).fill('8');
+  await page.locator('[name=operator_count]').fill('1'); await page.locator('[name=labor_duration_hours]').fill('8');
   await page.getByLabel('Commentaire du poste').fill(`DEPT ${department}`);
   await page.getByRole('checkbox',{name:'Utiliser les arrêts horodatés'}).check();
   await page.getByRole('button',{name:'Ajouter un arrêt',exact:true}).click();
   const category=department==='metallization'?'mold':department==='screen-printing'?'peripherals':department==='welding'?'material':'breakdown';
   await page.getByLabel('Catégorie arrêt 1',{exact:true}).selectOption(category);
   await expect(page.getByLabel(loss,{exact:true})).toHaveValue('10');
+  if (await page.locator('[name=operator_count]').inputValue() === '') await page.locator('[name=operator_count]').fill('1');
   await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
   await expect(page.getByRole('status')).toContainText('Relevé enregistré');
   await expect(page.locator('tbody tr')).toHaveCount(1);
@@ -142,7 +143,8 @@ test('Configurer un article garde les standards historiques et applique les nouv
   await page.getByRole('combobox',{name:'Référence article',exact:true}).selectOption({label:'ASS-02 · Article assemblage test'});
   await page.getByLabel('Date de production',{exact:true}).fill('2026-11-06');
   await page.getByLabel('Quantité conforme',{exact:true}).fill('100');
-  await page.getByLabel('Heures dépensées',{exact:true}).fill('10');
+  await page.locator('[name=operator_count]').fill('1'); await page.locator('[name=labor_duration_hours]').fill('10');
+  if (await page.locator('[name=operator_count]').inputValue() === '') await page.locator('[name=operator_count]').fill('1');
   await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
   await expect(page.locator('tbody tr')).toHaveCount(1);
   await navigate(page,'Équipements & articles');
@@ -162,7 +164,8 @@ test('Configurer un article garde les standards historiques et applique les nouv
   await page.getByRole('combobox',{name:'Référence article',exact:true}).selectOption({label:'ASS-02 · Article assemblage test'});
   await page.getByLabel('Date de production',{exact:true}).fill('2026-11-07');
   await page.getByLabel('Quantité conforme',{exact:true}).fill('100');
-  await page.getByLabel('Heures dépensées',{exact:true}).fill('10');
+  await page.locator('[name=operator_count]').fill('1'); await page.locator('[name=labor_duration_hours]').fill('10');
+  if (await page.locator('[name=operator_count]').inputValue() === '') await page.locator('[name=operator_count]').fill('1');
   await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
   await expect(page.locator('tbody tr')).toHaveCount(2);
   row=await page.evaluate(()=>JSON.parse(localStorage.getItem('qos-assembly-v1')).records[1]);

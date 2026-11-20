@@ -16,6 +16,7 @@ test('Quantité planifiée, brouillon après navigation et rechargement, sauvega
   await page.getByRole('button',{name:'Saisie de production',exact:true}).click();
   await expect(page.getByLabel('Quantité planifiée',{exact:true})).toHaveValue('6000');
   await expect(page.getByLabel('Quantité conforme',{exact:true})).toHaveValue('5000');
+  if (await page.locator('[name=operator_count]').inputValue() === '') await page.locator('[name=operator_count]').fill('1');
   await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
   await expect(page.getByRole('status')).toContainText('Relevé enregistré');
   const records=await page.evaluate(()=>JSON.parse(localStorage.getItem('qos-injection-v1')).records);

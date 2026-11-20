@@ -1,0 +1,38 @@
+import {test,expect} from '@playwright/test';
+import {readFileSync} from 'node:fs';
+const seed=JSON.parse(readFileSync(new URL('../src/seed.json',import.meta.url),'utf8'));
+test('DLE avec effectif réel, OF, sauvegarde et affichage mobile',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const data=structuredClone(seed);data.articles[0].standard_seconds=180;
+  await page.addInitScript(data=>{
+    if(!localStorage.getItem('qos-injection-v1'))localStorage.setItem('qos-injection-v1',JSON.stringify(data));
+    localStorage.setItem('qos-language','fr');
+  },data);
+  await page.goto('/');
+  await page.getByRole('button',{name:'Saisie de production',exact:true}).click();
+  await page.getByLabel('Date de production').fill('2026-11-20');
+  await page.getByLabel('Quantité conforme',{exact:true}).fill('700');
+  await page.locator('[name=operator_count]').fill('3');
+  await page.locator('[name=labor_duration_hours]').fill('8');
+  await page.getByLabel('Numéro OF',{exact:true}).fill('OF-MYC-007');
+  await expect(page.locator('.dle-formula')).toContainText('145,8 %');
+  await expect(page.locator('.dle-formula')).toContainText('24,00 h MOD');
+  await page.screenshot({path:'.runtime/labor-desktop.png',fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await page.screenshot({path:'.runtime/labor-mobile.png',fullPage:true});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
+  await expect(page.getByRole('status')).toContainText('Relevé enregistré');
+  await page.setViewportSize({width:1440,height:1100});
+  await page.reload();
+  await page.getByRole('button',{name:'Historique des relevés',exact:true}).click();
+  await page.getByRole('textbox',{name:'Rechercher un relevé'}).fill('OF-MYC-007');
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.locator('tbody tr')).toContainText('145,8 %');
+  await page.getByRole('button',{name:'Modifier',exact:true}).click();
+  await expect(page.locator('[name=operator_count]')).toHaveValue('3');
+  await expect(page.getByLabel('Numéro OF',{exact:true})).toHaveValue('OF-MYC-007');
+  await page.locator('[name=operator_count]').fill('5');
+  await expect(page.locator('.dle-formula')).toContainText('87,5 %');
+  expect(errors).toEqual([]);
+});

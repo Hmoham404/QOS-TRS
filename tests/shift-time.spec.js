@@ -17,6 +17,7 @@ test('8 h puis 12 h : calcul en direct, reprise et historique inchangé',async({
   await page.getByLabel('5S',{exact:true}).fill('5');
   await page.getByLabel('Date de production').fill('2026-11-19');
   await page.getByLabel('Commentaire du poste').fill('Poste 8 h conservé');
+  if (await page.locator('[name=operator_count]').inputValue() === '') await page.locator('[name=operator_count]').fill('1');
   await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
   await expect(page.getByRole('status')).toContainText('Relevé enregistré');
   await entry();
@@ -28,6 +29,7 @@ test('8 h puis 12 h : calcul en direct, reprise et historique inchangé',async({
   await expect(required).toContainText('665,0');
   await expect(page.locator('.shift-time-overview .auto-field')).toContainText('680,0');
   await page.getByLabel('Date de production').fill('2026-11-26');
+  if (await page.locator('[name=operator_count]').inputValue() === '') await page.locator('[name=operator_count]').fill('1');
   await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
   await expect(page.getByRole('status')).toContainText('Relevé enregistré');
   await page.reload(); await entry();

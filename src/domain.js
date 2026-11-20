@@ -5,6 +5,8 @@ import { getLocale } from './i18n.js';
 import { shiftTimeErrors } from './shift-time.js';
 export const SHIFTS = ['Matin', 'Après-Midi', 'Nuit'];
 export const numericFields = [...EXTRA_LOSS_FIELDS, 'opening_min', 'planned_min', 'breakdown_min', 'startup_min', 'changeover_min', 'good_qty', 'startup_rejects', 'production_rejects', 'labor_hours'];
+export const laborHours = r => r.operator_count != null && r.labor_duration_hours != null
+  ? Number(r.operator_count) * Number(r.labor_duration_hours) : Number(r.labor_hours) || 0;
 export const ratio = (a, b) => b > 0 ? a / b : null;
 export function calculate(r) {
   r = {
@@ -25,7 +27,8 @@ export function calculate(r) {
     quality: ratio(r.good_qty, total),
     trs: ratio(r.good_qty * r.cycle_seconds, required * 60),
     earned,
-    dle: ratio(earned, r.labor_hours)
+    labor: laborHours(r),
+    dle: ratio(earned, laborHours(r))
   };
 }
 export function aggregate(rows) {
@@ -53,7 +56,7 @@ export function aggregate(rows) {
     sum.ideal += c.total * r.cycle_seconds;
     sum.goodIdeal += r.good_qty * r.cycle_seconds;
     sum.earned += c.earned;
-    sum.labor += r.labor_hours;
+    sum.labor += c.labor;
     sum.planned += r.planned_min;
     sum.unplanned += unplannedMinutes(r);
     for (const [key, type] of UNPLANNED_TYPES) sum[key] += Number(r[type.field]) || 0;
@@ -69,6 +72,10 @@ export function aggregate(rows) {
 }
 export function validateRecord(r) {
   const errors = [];
+  if ((r.operator_count != null) !== (r.labor_duration_hours != null) ||
+      (r.operator_count != null && (!Number.isInteger(r.operator_count) || r.operator_count < 0 || r.operator_count > 100000 || !Number.isFinite(r.labor_duration_hours) || r.labor_duration_hours < 0 || r.labor_duration_hours > 24)))
+    errors.push('Renseignez un effectif MOD entier positif ou nul et une durée de travail entre 0 et 24 heures.');
+  if (r.work_order != null && (typeof r.work_order !== 'string' || r.work_order.length > 100)) errors.push('Le numéro OF est limité à 100 caractères.');
   if (r.department != null && !DEPARTMENT_IDS.includes(r.department)) errors.push('Département inconnu.');
   if (r.department && r.department !== 'injection') {
     const allowed = new Set(unplannedTypesFor(r.department).map(([, type]) => type.field));

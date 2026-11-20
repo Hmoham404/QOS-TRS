@@ -1,0 +1,9 @@
+.dle-formula{margin:0 22px 20px;padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--surface-soft);color:var(--text)}
+.dle-formula>strong{font-size:24px;font-family:'DM Sans',sans-serif}
+.dle-formula p{font-size:14px;line-height:1.7;margin:10px 0;overflow-wrap:anywhere}
+.dle-formula small{font-size:12px;line-height:1.6;display:block}
+.kpi-label,.hero-kpi .kpi-label{font-size:15px}
+.entry-summary .summary-ratios>div{font-size:14px}
+.entry-summary .summary-ratios strong{font-size:19px}
+.daily-press-numbers>span{font-size:14px}
+@media(max-width:760px){.kpi-label,.hero-kpi .kpi-label{font-size:14px}.dle-formula{margin:16px;grid-column:1/-1}.entry-summary .summary-ratios strong{font-size:17px}}

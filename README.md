@@ -30,6 +30,14 @@ La saisie comprend maintenant une quantité planifiée facultative par relevé. 
 
 Consulter [le guide mobile et publication](docs/mobile-pwa.md) pour le SQL, Vercel, la synchronisation et les limites des essais.
 
+## DLE, effectif MOD et numéro OF
+
+La saisie demande l’effectif MOD réel et la durée de travail par opérateur (en heures). Les heures dépensées sont calculées : **effectif MOD × durée de travail**. Le DLE vaut **conformes × standard de main-d’œuvre en secondes ÷ (heures MOD × 3 600)**. Exemple : 700 pièces × 180 s ÷ (3 opérateurs × 8 h × 3 600) = **145,83 %**. Le standard doit être un temps de main-d’œuvre par pièce, à distinguer du cycle machine. Les taux au-delà de 100 % sont conservés.
+
+Le numéro OF est facultatif, conservé dans les brouillons, sauvegardes, exports CSV/Excel et consultable/recherchable dans l’historique. Les anciens relevés conservent leurs heures MOD et leur DLE ; leur effectif n’est pas inventé. Renseigner l’effectif et la durée lors d’une modification active le calcul automatique pour ce relevé. Avec zéro heure MOD, le DLE est non calculable.
+
+En mode Supabase, appliquer **`supabase/13_labor_and_work_order.sql` après les migrations 01 à 12**. Cette migration ajoute les trois champs et calcule les heures côté serveur sans réécrire l’historique. Le script `UPDATE_SQL_EDITOR.sql` s’arrête à la migration 12 ; exécuter ensuite la 13. En mode local, la modification est disponible directement.
+
 ## Démarrage
 
 Pour une nouvelle saisie, le poste est prérempli avec **8 heures**, une pause de **20 min**, une réunion de **5 min** et **5 min de 5S**. Le **temps d’ouverture net** est donc **480 − 20 − 5 − 5 = 450 min**. Ces quatre durées sont modifiables ; l’ouverture est calculée automatiquement.

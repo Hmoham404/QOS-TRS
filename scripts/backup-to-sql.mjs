@@ -26,6 +26,10 @@ if(department!=='injection') {
   for(const index of [1,2])definitions[index][2].push('standard_operators','trs_target','dle_target');
 }
 const weldingPrerequisite = department === 'welding' ? ['-- Appliquer aussi 08_welding.sql avant cette reprise.'] : [];
+if (data.records.some(r => r.operator_count != null || r.work_order != null)) {
+  definitions[2][2].push('operator_count','labor_duration_hours','work_order');
+  weldingPrerequisite.push('-- Appliquer aussi 13_labor_and_work_order.sql avant cette reprise.');
+}
 const shiftTimeFields = ['pause_min','meeting_min','five_s_min'];
 if (data.records.some(r => shiftTimeFields.some(key => r[key] != null))) {
   definitions[2][2].push(...shiftTimeFields);

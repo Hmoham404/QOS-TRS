@@ -15,6 +15,7 @@ test('Journal détaillé, trois analyses et agrandissement sans bandeau promotio
  await page.getByLabel('Début arrêt 1',{exact:true}).fill('50');await page.getByLabel('Fin arrêt 1',{exact:true}).fill('70');await page.getByLabel('Cause arrêt 1',{exact:true}).fill('Défaut hydraulique');
  await page.getByRole('button',{name:'Ajouter un arrêt',exact:true}).click();await page.getByLabel('Début arrêt 2',{exact:true}).fill('130');await page.getByLabel('Fin arrêt 2',{exact:true}).fill('140');await page.getByLabel('Catégorie arrêt 2',{exact:true}).selectOption('startup');
  await expect(page.getByLabel('Panne machine',{exact:true})).toHaveValue('20');await expect(page.getByLabel('Panne machine',{exact:true})).toBeDisabled();
+  if (await page.locator('[name=operator_count]').inputValue() === '') await page.locator('[name=operator_count]').fill('1');
  await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();await expect(page.getByRole('status')).toContainText('Relevé enregistré');
  await page.getByRole('button',{name:'Vue d’ensemble',exact:true}).click();await expect(page.locator('.timeline-svg')).toBeVisible();
  await page.getByRole('button',{name:'Par heure',exact:true}).click();await expect(page.locator('.useful-total')).toContainText('7,0');

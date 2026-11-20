@@ -11,6 +11,7 @@ test('Parcours complet local, calcul, sauvegarde, édition, export, filtres et m
  await page.getByLabel('Démarrage / arrêt',{exact:true}).fill('30');
  await page.getByLabel('Commentaire du poste').fill('TEST AUTOMATISÉ — contexte isolé');
  await page.screenshot({path:'.runtime/entry-desktop.png',fullPage:true});
+  if (await page.locator('[name=operator_count]').inputValue() === '') await page.locator('[name=operator_count]').fill('1');
  await page.getByRole('button',{name:'Enregistrer le relevé'}).click();
  await expect(page.getByRole('status')).toContainText('Relevé enregistré');
  await page.reload();

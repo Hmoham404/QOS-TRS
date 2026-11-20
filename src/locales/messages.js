@@ -2,7 +2,9 @@
 import departmentMessages from './department-messages.js';
 import shiftTimeMessages from './shift-time-messages.js';
 import methodMessages from './method-messages.js';
+import laborMessages from './labor-messages.js';
 export default {
+  ...laborMessages,
   ...departmentMessages,
   ...shiftTimeMessages,
   ...methodMessages,

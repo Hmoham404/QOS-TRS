@@ -1,5 +1,5 @@
 import { departmentConfig, departmentSeed } from './departments.js';
-import { recordKey, validateRecord } from './domain.js';
+import { recordKey, validateRecord, laborHours } from './domain.js';
 import { overlapError } from './daily.js';
 
 export function createLocalStore(seed, storage) {
@@ -14,7 +14,7 @@ export function createLocalStore(seed, storage) {
     return {...data, department};
   }
   function saveRecord(record, department = 'injection') {
-    const data = read(department), r = {...record};
+    const data = read(department), r = {...record, labor_hours:laborHours(record)};
     if (r.department && r.department !== department) throw new Error('Le relevé appartient à un autre département.');
     const press = data.presses.find(p => p.id === r.press_id);
     const article = data.articles.find(a => a.id === r.article_id);

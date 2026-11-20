@@ -13,6 +13,7 @@ test('Les neuf causes demandées se sauvegardent, se recalculent et restent trad
  await expect(page.locator('.loss-subtotal')).toContainText('55,0');
  await expect(page.locator('.machine-time')).toContainText('395,0');
  await page.screenshot({path:'.runtime/losses-entry-desktop.png',fullPage:true});
+  if (await page.locator('[name=operator_count]').inputValue() === '') await page.locator('[name=operator_count]').fill('1');
  await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
  await expect(page.getByRole('status')).toContainText('Relevé enregistré');
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('qos-injection-v1')).records.find(r=>r.date==='2026-10-23'));
@@ -61,6 +62,7 @@ test('Une perte du journal alimente les champs et le Pareto sans double comptage
  await expect(page.getByLabel('Rupture MP',{exact:true})).toHaveValue('20');
  await expect(page.getByLabel('Rupture MP',{exact:true})).toBeDisabled();
  await expect(page.locator('.machine-time')).toContainText('430,0');
+  if (await page.locator('[name=operator_count]').inputValue() === '') await page.locator('[name=operator_count]').fill('1');
  await page.getByRole('button',{name:'Enregistrer le relevé',exact:true}).click();
  await expect(page.getByRole('status')).toContainText('Relevé enregistré');
  await page.getByRole('button',{name:'Vue d’ensemble',exact:true}).click();

@@ -12,6 +12,10 @@ test('Une sauvegarde locale se restaure en SQL sans perdre les cycles historique
  seed.records[0].cycle_seconds=6;
  seed.records[0].planned_qty=8000;
  seed.records[0].planned_min=15;
+ seed.records[0].operator_count=3;
+ seed.records[0].labor_duration_hours=8;
+ seed.records[0].labor_hours=24;
+ seed.records[0].work_order="OF-MYC-007";
  seed.records[0].shift_duration_min=480;
  seed.records[0].opening_min=450;
  seed.records[0].pause_min=20;
@@ -34,10 +38,15 @@ test('Une sauvegarde locale se restaure en SQL sans perdre les cycles historique
   await db.exec(readFileSync(new URL('../supabase/06_loss_categories.sql',import.meta.url),'utf8'));
   await db.exec(readFileSync(new URL('../supabase/11_shift_time.sql',import.meta.url),'utf8'));
   await db.exec(readFileSync(new URL('../supabase/12_net_opening_time.sql',import.meta.url),'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/13_labor_and_work_order.sql',import.meta.url),'utf8'));
   await db.exec(readFileSync(output,'utf8'));
   const r=(await db.query('select * from public.production_records where id=$1',[seed.records[0].id])).rows[0];
   assert.equal(r.notes,seed.records[0].notes);assert.equal(Number(r.cycle_seconds),6);
   assert.equal(r.planned_qty,8000);
+  assert.equal(r.operator_count,3);
+  assert.equal(Number(r.labor_duration_hours),8);
+  assert.equal(Number(r.labor_hours),24);
+  assert.equal(r.work_order,'OF-MYC-007');
   assert.equal(Number(r.shift_duration_min),480);
   assert.equal(Number(r.opening_min),450);
   assert.equal(Number(r.planned_min),15);

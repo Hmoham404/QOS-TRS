@@ -21,6 +21,7 @@ import "./refinement.css";
 import "./theme.css";
 import "./departments.css";
 import "./theme.js";
+import "./labor.css";
 import { startPwa } from "./pwa";
 startPwa();
 class ErrorBoundary extends React.Component {
