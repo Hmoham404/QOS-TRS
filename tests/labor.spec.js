@@ -15,8 +15,9 @@ test('DLE avec effectif réel, OF, sauvegarde et affichage mobile',async({page})
   await page.locator('[name=operator_count]').fill('3');
   await page.locator('[name=labor_duration_hours]').fill('8');
   await page.getByLabel('Numéro OF',{exact:true}).fill('OF-MYC-007');
-  await expect(page.locator('.dle-formula')).toContainText('145,8 %');
-  await expect(page.locator('.dle-formula')).toContainText('24,00 h MOD');
+  const dle = page.locator('.summary-ratios > div').filter({has:page.getByText('DLE',{exact:true})});
+  await expect(dle).toContainText('145,8 %');
+  await expect(page.locator('.dle-formula')).toHaveCount(0);
   await page.screenshot({path:'.runtime/labor-desktop.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});
   await page.screenshot({path:'.runtime/labor-mobile.png',fullPage:true});
@@ -33,6 +34,9 @@ test('DLE avec effectif réel, OF, sauvegarde et affichage mobile',async({page})
   await expect(page.locator('[name=operator_count]')).toHaveValue('3');
   await expect(page.getByLabel('Numéro OF',{exact:true})).toHaveValue('OF-MYC-007');
   await page.locator('[name=operator_count]').fill('5');
-  await expect(page.locator('.dle-formula')).toContainText('87,5 %');
+  await expect(dle).toContainText('87,5 %');
+  await page.getByRole('button',{name:'Configuration',exact:true}).click();
+  await expect(page.locator('.dle-formula')).toBeVisible();
+  await expect(page.locator('.dle-formula')).toContainText('Heures MOD = durée de travail × nombre d’opérateurs.');
   expect(errors).toEqual([]);
 });

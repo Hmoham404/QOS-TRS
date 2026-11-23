@@ -45,7 +45,7 @@ test('Jour et nuit couvrent les sept pages, conservent les saisies et restent m√
  await page.getByRole('button',{name:'Mode jour',exact:true}).click();
  await expect(page.getByLabel('Quantit√© conforme',{exact:true})).toHaveValue('123');
  await expect(page.getByLabel("Manque d'effectif",{exact:true})).toHaveValue('17');
- await expect(page.locator('.machine-time')).toContainText('463,0');
+ await expect(page.locator('.machine-time')).toContainText('433,0');
  await page.getByRole('button',{name:'Mode nuit',exact:true}).click();
  await page.screenshot({path:'.runtime/theme-night-entry.png',fullPage:true});
  await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','dark');

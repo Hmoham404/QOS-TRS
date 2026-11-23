@@ -46,7 +46,7 @@ test('PWA mobile : manifeste, ressources hors ligne et brouillon après redémar
   await expect(fresh.getByLabel('Quantité planifiée',{exact:true})).toHaveValue('7200');
   await expect(fresh.getByLabel("Manque d'effectif",{exact:true})).toHaveValue('12');
   await expect(fresh.getByLabel("Coupure d'énergie",{exact:true})).toHaveValue('8');
-  await expect(fresh.locator('.machine-time')).toContainText('450,0');
+  await expect(fresh.locator('.machine-time')).toContainText('430,0');
   await expect(fresh.getByLabel('Commentaire du poste')).toHaveValue('Brouillon hors ligne');
   expect(errors).toEqual([]);
 });

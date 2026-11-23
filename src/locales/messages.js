@@ -4069,5 +4069,8 @@ export default {
     "ar": "نهار",
     "it": "Giorno",
     "zh": "日间"
-  }
+  },
+  "Temps recette": {"en":"Earned time","ar":"الوقت المكتسب","it":"Tempo guadagnato","zh":"标准工时"},
+  "Temps dépensé": {"en":"Labor time spent","ar":"وقت العمل المستهلك","it":"Tempo di lavoro impiegato","zh":"实际人工工时"}
+
 };
