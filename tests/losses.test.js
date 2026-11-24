@@ -35,14 +35,14 @@ test('Le journal reconnaît toutes les causes et refuse une divergence des totau
  assert.equal(buildPareto([r]).total,55);assert.equal(buildPareto([r],true).total,60);
  assert.ok(validateTimeline({...r,material_shortage_min:0}).length);
 });
-test('Le classeur exporte les 41 colonnes et conserve les minutes et les formules pondérées',async()=>{
+test('Le classeur exporte les 42 colonnes et conserve les minutes et les formules pondérées',async()=>{
  const book=new ExcelJS.Workbook();await book.xlsx.load(await buildExcelExport([row],seed));
- const sheet=book.getWorksheet('Relevés');assert.equal(sheet.columnCount,41);
+ const sheet=book.getWorksheet('Relevés');assert.equal(sheet.columnCount,42);
  EXTRA_LOSS_FIELDS.forEach((field,index)=>assert.equal(sheet.getCell(2,31+index).value,row[field]));
  assert.equal(sheet.getCell('I1').value,'Panne machine (min)');
  assert.equal(sheet.getCell('L2').value,424);
  assert.equal(book.getWorksheet('Synthèse').getCell('B10').result,424/460);
- assert.match(sheet.autoFilter.toString(),/AO/);
+ assert.match(sheet.autoFilter.toString(),/AP/);
 });
 test('La migration des pertes est rejouable, conserve les 63 lignes et contrôle le journal et les temps',async()=>{
  const db=new PGlite();

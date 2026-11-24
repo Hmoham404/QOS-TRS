@@ -42,6 +42,8 @@ export function aggregate(rows) {
     goodIdeal: 0,
     earned: 0,
     labor: 0,
+    sorting: 0,
+    sortingCount: 0,
     planned: 0,
     unplanned: 0,
     ...Object.fromEntries(UNPLANNED_TYPES.map(([key]) => [key, 0]))
@@ -57,6 +59,10 @@ export function aggregate(rows) {
     sum.goodIdeal += r.good_qty * r.cycle_seconds;
     sum.earned += c.earned;
     sum.labor += c.labor;
+    if (r.sorting_hours != null) {
+      sum.sorting += Number(r.sorting_hours);
+      sum.sortingCount++;
+    }
     sum.planned += r.planned_min;
     sum.unplanned += unplannedMinutes(r);
     for (const [key, type] of UNPLANNED_TYPES) sum[key] += Number(r[type.field]) || 0;
@@ -72,6 +78,7 @@ export function aggregate(rows) {
 }
 export function validateRecord(r) {
   const errors = [];
+  if (r.sorting_hours != null && (!Number.isFinite(r.sorting_hours) || r.sorting_hours < 0 || r.sorting_hours > 1000000)) errors.push('Les heures de tri doivent être comprises entre 0 et 1 000 000.');
   if ((r.operator_count != null) !== (r.labor_duration_hours != null) ||
       (r.operator_count != null && (!Number.isInteger(r.operator_count) || r.operator_count < 0 || r.operator_count > 100000 || !Number.isFinite(r.labor_duration_hours) || r.labor_duration_hours < 0 || r.labor_duration_hours > 24)))
     errors.push('Renseignez un effectif MOD entier positif ou nul et une durée de travail entre 0 et 24 heures.');

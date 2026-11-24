@@ -38,6 +38,14 @@ Le numéro OF est facultatif, conservé dans les brouillons, sauvegardes, export
 
 En mode Supabase, appliquer **`supabase/13_labor_and_work_order.sql` après les migrations 01 à 12**. Cette migration ajoute les trois champs et calcule les heures côté serveur sans réécrire l’historique. Le script `UPDATE_SQL_EDITOR.sql` s’arrête à la migration 12 ; exécuter ensuite la 13. En mode local, la modification est disponible directement.
 
+## Heures de tri et blocs qualité
+
+La saisie de production propose **Heures de tri**, un champ facultatif à côté du numéro OF. Il accepte les heures décimales, y compris zéro. Les brouillons, sauvegardes JSON et exports CSV/Excel conservent cette valeur. Elle reste indépendante du DLE et des heures MOD.
+
+Dans la comparaison des départements, quatre blocs remplacent la petite ligne de synthèse : **% Rebut**, **Pièces conformes**, **Pièces rebutées** et **Heures de tri**. Ils suivent les dates sélectionnées. Le taux de rebut est le total des rebuts divisé par la quantité totale. Les heures de tri totalisent les valeurs renseignées ; « — » signifie qu’aucune valeur n’est renseignée sur cette période. Les anciens relevés ne reçoivent aucune heure inventée.
+
+Pour Supabase, appliquer `supabase/14_sorting_hours.sql` après les migrations existantes (01 à 13). En mode local, le champ est disponible directement.
+
 ## Démarrage
 
 Pour une nouvelle saisie, le poste est prérempli avec **8 heures**, une pause de **20 min**, une réunion de **5 min** et **5 min de 5S**. Le **temps d’ouverture net** est donc **480 − 20 − 5 − 5 = 450 min**. Ces quatre durées sont modifiables ; l’ouverture est calculée automatiquement.

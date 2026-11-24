@@ -34,7 +34,7 @@ export function exportCSV(rows, data) {
   const lines = rows.map(r => {
     const c = calculate(r),
       a = data.articles.find(x => x.id === r.article_id);
-    return [r.date, translate(r.shift), data.presses.find(x => x.id === r.press_id)?.name, a?.code, a?.name, r.opening_min, r.planned_min, c.required, r[primaryBreakdown] ?? 0, r.startup_min, r.changeover_min, c.runtime, c.total, r.good_qty, r.startup_rejects, r.production_rejects, r.cycle_seconds, c.availability, c.performance, c.quality, c.trs, r.standard_seconds, c.labor, c.earned, c.dle, r.notes, r.shift_start || "", r.timeline_complete ? translate("Oui") : translate("Non"), JSON.stringify(r.stop_events || []), r.planned_qty ?? null, ...extras.map(field => r[field] ?? 0), ...(data.department && data.department !== "injection" ? [r.standard_operators ?? null, r.trs_target == null ? null : r.trs_target * 100, r.dle_target == null ? null : r.dle_target * 100] : []), r.work_order ?? "", r.operator_count ?? null, r.labor_duration_hours ?? null].map((v, i) => safe([17, 18, 19, 20, 24].includes(i) ? pct(v) : typeof v === "number" ? String(v).replace(".", ",") : v)).join(";");
+    return [r.date, translate(r.shift), data.presses.find(x => x.id === r.press_id)?.name, a?.code, a?.name, r.opening_min, r.planned_min, c.required, r[primaryBreakdown] ?? 0, r.startup_min, r.changeover_min, c.runtime, c.total, r.good_qty, r.startup_rejects, r.production_rejects, r.cycle_seconds, c.availability, c.performance, c.quality, c.trs, r.standard_seconds, c.labor, c.earned, c.dle, r.notes, r.shift_start || "", r.timeline_complete ? translate("Oui") : translate("Non"), JSON.stringify(r.stop_events || []), r.planned_qty ?? null, ...extras.map(field => r[field] ?? 0), ...(data.department && data.department !== "injection" ? [r.standard_operators ?? null, r.trs_target == null ? null : r.trs_target * 100, r.dle_target == null ? null : r.dle_target * 100] : []), r.work_order ?? "", r.operator_count ?? null, r.labor_duration_hours ?? null, r.sorting_hours ?? null].map((v, i) => safe([17, 18, 19, 20, 24].includes(i) ? pct(v) : typeof v === "number" ? String(v).replace(".", ",") : v)).join(";");
   });
   download("QOS-releves.csv", "﻿" + [headers.map(safe).join(";"), ...lines].join("\r\n"), "text/csv;charset=utf-8");
 }
@@ -55,7 +55,7 @@ function Workshop({ department, onDepartmentChange }) {
   const DepartmentIcon = selectedDepartment.icon;
   const isEnabled = config.enabled;
   useEffect(() => {
-    document.title = `QOS · ${translate(selectedDepartment.name)}`;
+    document.title = `OEE/DLE · ${translate(selectedDepartment.name)}`;
   }, [language, department]);
   function changeDepartment(next) {
     onDepartmentChange(next);
@@ -213,7 +213,7 @@ function Workshop({ department, onDepartmentChange }) {
     <aside className={`sidebar ${menu ? "open" : ""}`}><a className="brand" href="#" onClick={e => {
         e.preventDefault();
         go("comparison");
-      }}><span className="brand-mark"><Activity size={24} /></span><span>QOS<span className="brand-dot">.</span></span></a><DepartmentSwitcher department={department} onChange={changeDepartment} /><p className="nav-label">{translate("PILOTAGE DE L’ATELIER")}</p><nav>{sections.map(([key, label, Icon]) => <button key={key} className={page === key ? "active" : ""} onClick={() => go(key)}><Icon size={19} />{translate(label)}{page === key && <span className="nav-active" />}</button>)}</nav></aside>
+      }}><span className="brand-mark"><Activity size={24} /></span><span>OEE/DLE</span></a><DepartmentSwitcher department={department} onChange={changeDepartment} /><p className="nav-label">{translate("PILOTAGE DE L’ATELIER")}</p><nav>{sections.map(([key, label, Icon]) => <button key={key} className={page === key ? "active" : ""} onClick={() => go(key)}><Icon size={19} />{translate(label)}{page === key && <span className="nav-active" />}</button>)}</nav></aside>
     <main className="main"><header className="topbar"><div className="breadcrumb"><IconButton label={translate("Ouvrir le menu")} onClick={() => setMenu(true)}><Menu size={19} /></IconButton><span>{translate("Atelier")} {translate(selectedDepartment.name)}</span><ChevronRight size={14} /><strong>{sections.find(s => s[0] === page)?.[1]}</strong></div><div className="top-actions"><LanguageSelector /><ThemeSwitcher /><span className={`connection ${configured ? "cloud" : ""}`}><Database size={14} />{configured ? data?.offline ? translate("Copie hors connexion") : data ? translate("Atelier partagé") : translate("Connexion…") : translate("Mode local")}</span><span className="top-date">{new Date().toLocaleDateString(getLocale(), {
               day: "numeric",
               month: "long",

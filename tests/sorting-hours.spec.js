@@ -1,0 +1,31 @@
+import { test, expect } from '@playwright/test';
+
+test('Les heures de tri se saisissent, survivent au brouillon et alimentent les quatre blocs', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: 'Saisie de production', exact: true }).click();
+  await page.getByLabel('Date de production').fill('2026-11-24');
+  await page.getByLabel('Quantité conforme', { exact: true }).fill('100');
+  await page.locator('[name=operator_count]').fill('2');
+  await page.locator('[name=labor_duration_hours]').fill('8');
+  await page.getByLabel('Numéro OF', { exact: true }).fill('OF-TRI-01');
+  await page.getByLabel('Heures de tri', { exact: true }).fill('2.5');
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: 'Saisie de production', exact: true }).click();
+  await expect(page.getByLabel('Heures de tri', { exact: true })).toHaveValue('2.5');
+  await page.getByRole('button', { name: 'Enregistrer le relevé', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Relevé enregistré' })).toBeVisible();
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.locator('.brand').click();
+  await page.getByLabel('Date analysée').fill('2026-11-24');
+  const quality = page.locator('.comparison-card[data-department="injection"] .comparison-quality');
+  await expect(quality.locator('.comparison-metric')).toHaveCount(4);
+  await expect(quality.locator('strong')).toHaveText(['0,0 %', '100', '0', '2,50 h']);
+  await expect(page.locator('.comparison-summary')).toHaveCount(0);
+  await page.locator('.comparison-card[data-department="injection"]').screenshot({ path: '.runtime/quality-blocks-desktop.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await quality.screenshot({ path: '.runtime/quality-blocks-mobile.png' });
+  expect(errors).toEqual([]);
+});

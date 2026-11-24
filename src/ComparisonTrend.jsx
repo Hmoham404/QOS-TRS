@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ReferenceLine, LabelList } from 'recharts';
 import { aggregate, formatNumber as num, today } from './domain.js';
 import { getLocale, t } from './i18n.js';
+import { calendarWeekLabel } from './calendar-week.js';
+import AvailabilityStops from './AvailabilityStops.jsx';
 
 const dateString = d => d.toISOString().slice(0, 10);
 const atNoon = date => new Date(date + 'T12:00:00Z');
@@ -28,10 +30,10 @@ export function comparisonTrend(rows, metric, reference = today()) {
     const start=dateString(date), end=dateString(new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,0,12)));
     add('month-'+start,formatDate(start,{month:'short'}),'month',start,end);
   }
-  let start=monday(monthStart), index=1;
+  let start=monday(monthStart);
   while(start<=monthEnd) {
     const end=addDays(start,6);
-    add('week-'+start,`${t('S')} ${index++}`,'week',start<monthStart?monthStart:start,end>monthEnd?monthEnd:end);
+    add('week-'+start,calendarWeekLabel(start),'week',start<monthStart?monthStart:start,end>monthEnd?monthEnd:end);
     start=addDays(start,7);
   }
   for(let day=0;day<7;day++) {
@@ -41,8 +43,20 @@ export function comparisonTrend(rows, metric, reference = today()) {
   return result;
 }
 
-function PointLabel({x,y,value}) {
-  return value == null ? null : <text x={x} y={y-18} textAnchor="middle" fill="var(--text)" fontSize="18" fontWeight="800">{num(value,1)}%</text>;
+const periodLabel = point => {
+  const options = { day: 'numeric', month: 'short', year: 'numeric' };
+  return point.start === point.end ? formatDate(point.start, options) : `${formatDate(point.start, options)} – ${formatDate(point.end, options)}`;
+};
+const activateOnKey = (event, action) => {
+  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); action(); }
+};
+function PointLabel({x,y,value,point,onSelect}) {
+  if (value == null) return null;
+  return <text x={x} y={y-18} textAnchor="middle" fill="var(--text)" fontSize="18" fontWeight="800" className={onSelect ? 'availability-point' : undefined} role={onSelect ? 'button' : undefined} tabIndex={onSelect ? 0 : undefined} aria-label={onSelect ? `${t('Causes des arrêts')} · ${periodLabel(point)} · ${num(value,1)} %` : undefined} onClick={onSelect ? () => onSelect(point) : undefined} onKeyDown={onSelect ? event => activateOnKey(event, () => onSelect(point)) : undefined}>{num(value,1)}%</text>;
+}
+function TrendDot({cx,cy,payload,onSelect,selected}) {
+  if (payload?.value == null) return null;
+  return <g className={onSelect ? 'availability-point' : undefined} data-point-key={payload.key} role={onSelect ? 'button' : undefined} tabIndex={onSelect ? 0 : undefined} aria-pressed={onSelect ? selected === payload.key : undefined} aria-label={onSelect ? `${t('Causes des arrêts')} · ${periodLabel(payload)} · ${num(payload.value,1)} %` : undefined} onClick={onSelect ? () => onSelect(payload) : undefined} onKeyDown={onSelect ? event => activateOnKey(event, () => onSelect(payload)) : undefined}><circle cx={cx} cy={cy} r={14} fill="transparent"/><circle cx={cx} cy={cy} r={selected === payload.key ? 7 : 5} fill="#0d8d83" stroke="#fff" strokeWidth={3}/></g>;
 }
 function ChartTooltip({active,payload}) {
   const point=payload?.[0]?.payload;
@@ -52,11 +66,15 @@ function ChartTooltip({active,payload}) {
 }
 export default function ComparisonTrend({ department, metric, label, rows, onClose }) {
   const dialog = useRef(null);
+  const [selectedPoint, setSelectedPoint] = useState(null);
   const points = comparisonTrend(rows, metric);
   const hasValues = points.some(point => point.value != null);
+  const onSelect = metric === 'availability' ? setSelectedPoint : undefined;
   useEffect(() => { dialog.current?.showModal(); }, []);
   return <dialog ref={dialog} className="comparison-dialog" onClose={onClose} aria-labelledby="comparison-trend-title">
     <div className="comparison-dialog-header"><div><span className="comparison-index">{t(department)}</span><h2 id="comparison-trend-title">{t(label)} · {t('Évolution')}</h2><p>{t('Trois échelles de temps sur une seule courbe')}</p></div><button className="comparison-close" type="button" aria-label={t('Fermer')} onClick={() => dialog.current?.close()}><X size={20}/></button></div>
-    {hasValues ? <><p className="comparison-chart-note">{t('Les valeurs sont calculées à partir des relevés de chaque période. Les périodes sans données restent vides.')}</p><div className="comparison-chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={points} margin={{top:35,right:20,left:0,bottom:10}} accessibilityLayer><defs><linearGradient id="comparison-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#438cd8" stopOpacity={.38}/><stop offset="100%" stopColor="#438cd8" stopOpacity={.02}/></linearGradient></defs><CartesianGrid stroke="var(--chart-grid)" vertical={false}/><XAxis dataKey="key" tickFormatter={key => points.find(point => point.key===key)?.label || ''} interval={0} tick={{fill:'var(--text-muted)',fontSize:11}} tickLine={false}/><YAxis domain={[0,max => Math.max(100,Math.ceil(max/20)*20)]} tickFormatter={value => `${num(value)} %`} width={58} tick={{fill:'var(--text-muted)',fontSize:11}} axisLine={false} tickLine={false}/><Tooltip content={<ChartTooltip/>}/><ReferenceLine x={points[2]?.key} stroke="#81b6bf" strokeDasharray="5 5"/><ReferenceLine x={points.filter(point => point.group==='week').at(-1)?.key} stroke="#81b6bf" strokeDasharray="5 5"/><Area type="linear" dataKey="value" stroke="#0d8d83" strokeWidth={3} fill="url(#comparison-area)" dot={{r:5,fill:'#0d8d83',stroke:'#fff',strokeWidth:3}} activeDot={{r:6}} connectNulls={false} isAnimationActive={false}><LabelList dataKey="value" content={<PointLabel/>}/></Area></AreaChart></ResponsiveContainer></div><div className="comparison-chart-sections"><span>{t('3 derniers mois')}</span><span>{t('Mois actuel')}</span><span>{t('Semaine actuelle')}</span></div></> : <p className="comparison-chart-empty">{t('Aucun relevé pour les périodes affichées.')}</p>}
+    {hasValues && onSelect && <p className="comparison-chart-note">{t('Cliquez sur un point ou son pourcentage pour voir les causes des arr?ts.')}</p>}
+    {hasValues ? <><p className="comparison-chart-note">{t('Les valeurs sont calculées à partir des relevés de chaque période. Les périodes sans données restent vides.')}</p><div className="comparison-chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={points} margin={{top:35,right:20,left:0,bottom:10}} accessibilityLayer><defs><linearGradient id="comparison-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#438cd8" stopOpacity={.38}/><stop offset="100%" stopColor="#438cd8" stopOpacity={.02}/></linearGradient></defs><CartesianGrid stroke="var(--chart-grid)" vertical={false}/><XAxis dataKey="key" tickFormatter={key => points.find(point => point.key===key)?.label || ''} interval={0} tick={{fill:'var(--text-muted)',fontSize:11}} tickLine={false}/><YAxis domain={[0,max => Math.max(100,Math.ceil(max/20)*20)]} tickFormatter={value => `${num(value)} %`} width={58} tick={{fill:'var(--text-muted)',fontSize:11}} axisLine={false} tickLine={false}/><Tooltip content={<ChartTooltip/>}/><ReferenceLine x={points[2]?.key} stroke="#81b6bf" strokeDasharray="5 5"/><ReferenceLine x={points.filter(point => point.group==='week').at(-1)?.key} stroke="#81b6bf" strokeDasharray="5 5"/><Area type="linear" dataKey="value" stroke="#0d8d83" strokeWidth={3} fill="url(#comparison-area)" dot={props => <TrendDot {...props} onSelect={onSelect} selected={selectedPoint?.key}/>} activeDot={props => <TrendDot {...props} onSelect={onSelect} selected={selectedPoint?.key}/>} connectNulls={false} isAnimationActive={false}><LabelList dataKey="value" content={props => <PointLabel {...props} point={points[props.index]} onSelect={onSelect}/>}/></Area></AreaChart></ResponsiveContainer></div><div className="comparison-chart-sections"><span>{t('3 derniers mois')}</span><span>{t('Mois actuel')}</span><span>{t('Semaine actuelle')}</span></div></> : <p className="comparison-chart-empty">{t('Aucun relevé pour les périodes affichées.')}</p>}
+    {selectedPoint && onSelect && <AvailabilityStops rows={rows} point={selectedPoint} periodLabel={periodLabel(selectedPoint)}/>}
   </dialog>;
 }

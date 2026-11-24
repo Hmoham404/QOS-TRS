@@ -1,4 +1,11 @@
 export default {
+  'Les heures de tri doivent être comprises entre 0 et 1 000 000.': {en:'Sorting hours must be between 0 and 1,000,000.',ar:'يجب أن تكون ساعات الفرز بين 0 و1000000.',it:'Le ore di selezione devono essere comprese tra 0 e 1.000.000.',zh:'分拣工时必须介于0和1,000,000之间。'},
+  'Exécutez supabase/14_sorting_hours.sql dans SQL Editor. Le brouillon est conservé.': {en:'Run supabase/14_sorting_hours.sql in SQL Editor. Your draft is preserved.',ar:'نفّذ supabase/14_sorting_hours.sql في محرر SQL. تم الاحتفاظ بالمسودة.',it:'Esegui supabase/14_sorting_hours.sql in SQL Editor. La bozza è conservata.',zh:'请在SQL编辑器中执行supabase/14_sorting_hours.sql。草稿已保留。'},
+  'Pièces rebutées': {en:'Rejected units',ar:'القطع المرفوضة',it:'Pezzi scartati',zh:'不良品数量'},
+  'Heures de tri': {en:'Sorting hours',ar:'ساعات الفرز',it:'Ore di selezione',zh:'分拣工时'},
+  'Heures gammes': {en:'Standard hours',ar:'الساعات المعيارية',it:'Ore standard',zh:'标准工时'},
+  'Heures déclarées': {en:'Declared hours',ar:'الساعات المصرح بها',it:'Ore dichiarate',zh:'申报工时'},
+  'Heures de pointage': {en:'Clocked hours',ar:'ساعات الحضور المسجلة',it:'Ore timbrate',zh:'考勤工时'},
   'Nombre d’opérateurs (MOD)': {en:'Number of operators (direct labor)',ar:'عدد العمال (اليد العاملة المباشرة)',it:'Numero di operatori (MOD)',zh:'操作工人数（直接人工）'},
   'Durée de travail par opérateur': {en:'Working hours per operator',ar:'مدة العمل لكل عامل',it:'Ore di lavoro per operatore',zh:'每名操作工工作时长'},
   'Numéro OF': {en:'Work order number',ar:'رقم أمر التصنيع',it:'Numero ordine di produzione',zh:'生产工单号'},

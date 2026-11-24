@@ -63,6 +63,7 @@ export async function saveRecord(record, department = 'injection') {
       let retry=record.updated_at?supabase.from('production_records').update(r).eq('id',r.id).eq('updated_at',record.updated_at):supabase.from('production_records').insert(r);
       ({data,error}=await retry.select());
     }
+    if(error?.code==='PGRST204' && /sorting_hours/.test(error.message)) throw new Error('Exécutez supabase/14_sorting_hours.sql dans SQL Editor. Le brouillon est conservé.');
     if(error?.code==='PGRST204' && /operator_count|labor_duration_hours|work_order/.test(error.message)) throw new Error('Exécutez supabase/13_labor_and_work_order.sql dans SQL Editor. Le brouillon est conservé.');
     if(error?.code==='PGRST204' && /shift_duration_min|pause_min|meeting_min|five_s_min/.test(error.message)) throw new Error('Exécutez supabase/11_shift_time.sql puis supabase/12_net_opening_time.sql dans SQL Editor. Le brouillon est conservé.');
     if(error?.code==='PGRST204' && /staffing_min|mold_breakdown_min|peripherals_min|material_shortage_min|quality_stop_min|power_cut_min|adjustment_min|other_loss_min/.test(error.message)) throw new Error('Exécutez supabase/06_loss_categories.sql dans SQL Editor. Le brouillon et ses pertes sont conservés.');
