@@ -22,6 +22,7 @@ test('Les heures de tri se saisissent, survivent au brouillon et alimentent les 
   const quality = page.locator('.comparison-card[data-department="injection"] .comparison-quality');
   await expect(quality.locator('.comparison-metric')).toHaveCount(4);
   await expect(quality.locator('strong')).toHaveText(['0,0 %', '100', '0', '2,50 h']);
+  await expect(page.locator('.comparison-intro dd').last()).toHaveText('2,50 h');
   await expect(page.locator('.comparison-summary')).toHaveCount(0);
   await page.locator('.comparison-card[data-department="injection"]').screenshot({ path: '.runtime/quality-blocks-desktop.png' });
   await page.setViewportSize({ width: 390, height: 844 });

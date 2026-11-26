@@ -1,0 +1,41 @@
+import { test, expect } from '@playwright/test';
+
+test('Le rapport importe les heures MOD RH, isole les périodes et attend les pointages incomplets',async({page})=>{
+  await page.route('**/api/rh-pointage?**',async route=>{
+    const query=new URL(route.request().url()).searchParams;
+    const from=query.get('from'),to=query.get('to');
+    const daily=from===to;
+    await route.fulfill({json:{status:daily?'ready':'partial',hours:daily?8:6,totalMinutes:daily?480:360,from,to,coveredDates:[from],missingDates:daily?[]:[to],reviewCount:daily?0:2,updatedAt:'2026-11-26T10:00:00Z'}});
+  });
+  await page.goto('/');
+  await page.getByRole('button',{name:'Rapport de production',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:'Rapport de production'});
+  await dialog.getByLabel('Date du rapport').fill('2026-10-08');
+  const pointage=dialog.getByLabel('Temps de pointage (h)');
+  await expect(pointage).toHaveValue('8');
+  await expect(dialog.locator('#pr-pointage-help')).toContainText('Source RH');
+  await expect(dialog.getByTestId('report-dle')).not.toHaveText('—');
+  const automaticDle=await dialog.getByTestId('report-dle').innerText();
+  await pointage.fill('16');
+  await expect(dialog.locator('#pr-pointage-help')).toContainText('Saisie manuelle');
+  await expect(dialog.getByTestId('report-dle')).not.toHaveText(automaticDle);
+  await dialog.getByRole('button',{name:'Reprendre le pointage RH'}).click();
+  await expect(pointage).toHaveValue('8');
+  await expect(dialog.getByTestId('report-dle')).toHaveText(automaticDle);
+  await dialog.getByRole('button',{name:'Semaine',exact:true}).click();
+  await expect(pointage).toHaveValue('6');
+  await expect(dialog.getByTestId('report-dle')).toHaveText('—');
+  await expect(dialog.locator('#pr-pointage-help')).toContainText('incomplet');
+  await expect(dialog.locator('#pr-pointage-help')).toContainText('2 pointage(s)');
+  await page.screenshot({path:'.runtime/rh-pointage-partial.png'});
+  await dialog.getByRole('button',{name:'Jour',exact:true}).click();
+  await expect(pointage).toHaveValue('8');
+  await dialog.getByRole('button',{name:'Actualiser le rapport',exact:true}).click();
+  await expect(pointage).toHaveValue('8');
+  await page.route('**/api/rh-pointage?**',route=>route.fulfill({status:503,json:{error:'RH unavailable'}}));
+  await dialog.getByRole('button',{name:'Actualiser le rapport',exact:true}).click();
+  await expect(pointage).toHaveValue('');
+  await expect(dialog.locator('#pr-pointage-help')).toContainText('indisponible');
+  await pointage.fill('8');
+  await expect(dialog.getByTestId('report-dle')).toHaveText(automaticDle);
+});

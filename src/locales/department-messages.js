@@ -1,4 +1,12 @@
 const entries = [
+  ['Décoration','Decoration','الزخرفة','Decorazione','装饰'],
+  ['Injection machines','Injection machines','آلات الحقن','Macchine a iniezione','注塑机'],
+  ['Ligne de métallisation','Metallization line','خط المعدنة','Linea di metallizzazione','金属化生产线'],
+  ['Ligne de peinture','Painting line','خط الطلاء','Linea di verniciatura','喷涂生产线'],
+  ['Ligne de support Bosage','Bosage support line','خط دعم Bosage','Linea supporti Bosage','Bosage支架生产线'],
+  ['Total du département','Department total','إجمالي القسم','Totale reparto','部门总计'],
+  ['Choisir une activité · {0}','Choose an activity · {0}','اختر نشاطًا · {0}','Scegli un’attività · {0}','选择活动 · {0}'],
+  ['Activités · {0}','Activities · {0}','الأنشطة · {0}','Attività · {0}','活动 · {0}'],
   ['En gras : machines avec une saisie enregistrée.','Bold: machines with a saved production record.','بالخط العريض: الآلات التي لها سجل إنتاج محفوظ.','In grassetto: macchine con una registrazione di produzione salvata.','粗体：已有生产记录的机器。'],
   ['Machines','Machines','الآلات','Macchine','机器'],
   ['Total · toutes les machines','Total · all machines','الإجمالي · جميع الآلات','Totale · tutte le macchine','总计 · 所有机器'],

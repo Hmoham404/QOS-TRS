@@ -1,6 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { reportPeriod } from '../src/report-period.js';
+import { reportPeriod, shiftReportReference } from '../src/report-period.js';
+
+test('La navigation avance selon le mode, y compris aux limites de mois et année', () => {
+  assert.equal(shiftReportReference('day','2026-12-31',1),'2027-01-01');
+  assert.equal(shiftReportReference('day','2028-03-01',-1),'2028-02-29');
+  assert.equal(shiftReportReference('week','2027-01-01',-1),'2026-12-25');
+  assert.equal(shiftReportReference('week','2026-12-28',1),'2027-01-04');
+  assert.equal(shiftReportReference('month','2026-01-31',1),'2026-02-01');
+  assert.equal(shiftReportReference('month','2026-01-31',-1),'2025-12-01');
+});
 
 test('Le rapport suit les jours, les semaines lundi–dimanche et les changements d’année', () => {
   assert.deepEqual(reportPeriod('day', '2026-11-26'), { from: '2026-11-26', to: '2026-11-26' });

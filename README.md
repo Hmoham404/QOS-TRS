@@ -1,5 +1,17 @@
 # QOS · Atelier Injection
 
+## Comparaison par département
+
+Le **Rapport de production** charge désormais le temps de pointage depuis le site RH `https://d-rh-hn7b.vercel.app/`. La route serveur `/api/rh-pointage?from=AAAA-MM-JJ&to=AAAA-MM-JJ` additionne les minutes validées des salariés actifs **MOD / PRODUCTION**, après application des corrections RH, sans retransmettre les noms ni les fiches salariés au navigateur. Le bouton Actualiser relit la source. Les jours non importés et pointages à vérifier sont signalés ; le DLE automatique reste vide tant que la période RH est incomplète. Une saisie manuelle explicite remplace le total pour la période affichée ; « Reprendre le pointage RH » rétablit la valeur automatique.
+
+La route fonctionne dans Vite (`dev` et `preview`) et comme fonction Vercel lors de la publication du dépôt complet. Un hébergement du seul dossier `dist` doit disposer d’une route serveur équivalente. Les variables serveur facultatives `RH_SUPABASE_URL` et `RH_SUPABASE_PUBLISHABLE_KEY` remplacent la connexion publique du site RH conservée dans `server/rh-source.js`. Ne pas utiliser de clé secrète. Aucun changement du site RH ni de sa base n’est effectué. Les valeurs calculées ne sont pas mises en cache hors connexion.
+
+La comparaison affiche trois cadres : **Injection** (Injection machines et Soudure), **Métallisation** (ligne de métallisation, ligne de peinture et ligne de support Bosage) et **Assemblage** (Décoration et Assemblage). Un clic sur le titre ouvre le choix de l’activité ; « Total du département » regroupe ses relevés. Les taux sont recalculés depuis les temps et quantités cumulés. Le choix d’une activité réinitialise le filtre machine de ce cadre ; les dates restent communes et le bandeau usine conserve toutes les activités.
+
+Décoration est le nouveau nom affiché pour Sérigraphie ; les identifiants et l’historique `screen-printing` sont conservés. En mode local, les lignes de Métallisation manquantes sont disponibles dans la saisie et les références sans créer de production. Les lignes personnalisées dont le nom contient « peinture » ou « Bosage » sont rattachées à l’activité correspondante ; les autres restent dans la ligne de métallisation. Les lignes initiales gardent leur activité même si leur nom est modifié.
+
+Pour une base Supabase partagée, appliquer **`supabase/15_department_lines.sql` après 01 à 14** pour ajouter Peinture et Bosage aux équipements et renommer la ligne initiale Sérigraphie en Décoration. Le regroupement des cadres ne déplace aucun relevé entre les ateliers et ne nécessite aucune migration des historiques.
+
 Application **React + Vite + Tailwind CSS 4**, disponible en cinq langues, construite à partir de `QOS - TRS atelier Injection.xlsx`. Le classeur original n’est pas modifié.
 
 ## Langues, départements et export Excel

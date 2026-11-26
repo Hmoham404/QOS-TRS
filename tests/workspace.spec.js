@@ -48,14 +48,14 @@ test('Toutes les pages changent de langue, les préférences persistent et l’a
 
 test('Les cinq espaces sont accessibles et Injection conserve ses données', async ({ page }) => {
   await page.goto('/');
-  for (const department of ['Assemblage','Soudure','Métallisation','Sérigraphie']) {
+  for (const department of ['Assemblage','Soudure','Métallisation','Décoration']) {
     await page.getByRole('button',{name:'Changer de département',exact:true}).click();
     await page.getByRole('group',{name:'Choisir un département'}).getByRole('button',{name:department,exact:true}).click();
     await expect(page.locator('h1')).toContainText('Bilan journalier de l’atelier');
-    await expect(page.locator('.daily-fleet tbody tr')).toHaveCount(1);
+    await expect(page.locator('.daily-fleet tbody tr')).toHaveCount(department === 'Métallisation' ? 3 : 1);
     await expect(page.getByRole('button',{name:'Nouvelle saisie',exact:true})).toBeVisible();
   }
-  await page.reload(); await expect(page.locator('.breadcrumb')).toContainText('Sérigraphie');
+  await page.reload(); await expect(page.locator('.breadcrumb')).toContainText('Décoration');
   await page.getByRole('button',{name:'Changer de département',exact:true}).click();
   await page.getByRole('group',{name:'Choisir un département'}).getByRole('button',{name:'Injection',exact:true}).click();
   await page.getByRole('button',{name:'Vue d’ensemble',exact:true}).click();

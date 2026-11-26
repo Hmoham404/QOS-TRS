@@ -19,14 +19,14 @@ async function navigate(page, name) {
 
 for (const [department,name,loss] of [
   ['metallization','Métallisation','Panne Vaccum'],
-  ['screen-printing','Sérigraphie','Panne four'],
+  ['screen-printing','Décoration','Panne four'],
   ['assembly','Assemblage','Panne machine'],
   ['welding','Soudure','Rupture SFIN'],
 ]) test(`${name} : paramètres, saisie, journal, historique, Excel et isolation`, async ({page}) => {
   test.setTimeout(90000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto('/');await selectDepartment(page,name);
-  await expect(page.locator('.daily-fleet tbody tr')).toHaveCount(1);
+  await expect(page.locator('.daily-fleet tbody tr')).toHaveCount(departmentSeed(department).presses.length);
   await navigate(page,'Configuration');
   await expect(page.getByRole('heading',{name:'Objectifs OEE / DLE',exact:true})).toBeVisible();
   await expect(page.getByLabel('Objectif (%)',{exact:true})).toHaveCount(0);
@@ -97,7 +97,7 @@ for (const [department,name,loss] of [
 
 test('Les brouillons et les préférences restent séparés entre espaces, y compris sur mobile', async ({page})=>{
   await page.setViewportSize({width:390,height:844});await page.goto('/');
-  for(const [name,note] of [['Assemblage','Brouillon assemblage'],['Métallisation','Brouillon métal'],['Sérigraphie','Brouillon sérigraphie'],['Soudure','Brouillon soudure']]) {
+  for(const [name,note] of [['Assemblage','Brouillon assemblage'],['Métallisation','Brouillon métal'],['Décoration','Brouillon sérigraphie'],['Soudure','Brouillon soudure']]) {
     await selectDepartment(page,name);await navigate(page,'Saisie de production');
     await expect(page.getByLabel('Commentaire du poste')).toHaveValue('');
     await page.getByLabel('Commentaire du poste').fill(note);

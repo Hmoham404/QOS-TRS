@@ -2,6 +2,10 @@ import { test, expect } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 
 test('Les contrôles du haut sont alignés et le rapport mensuel imprime toutes les lignes en A4', async ({ page, context }) => {
+  await page.route('**/api/rh-pointage?**',route=>{
+    const query=new URL(route.request().url()).searchParams;
+    return route.fulfill({json:{status:'empty',hours:null,from:query.get('from'),to:query.get('to'),coveredDates:[],missingDates:[],reviewCount:0}});
+  });
   await page.addInitScript(() => { window.print = () => { window.__reportPrintCalled = true; }; });
   await page.goto('/');
   const trigger = page.getByRole('button',{name:'Rapport de production',exact:true});
@@ -29,7 +33,7 @@ test('Les contrôles du haut sont alignés et le rapport mensuel imprime toutes 
   const html = await iframe.content();
   expect(html).toContain('01 octobre 2026 - 31 octobre 2026');
   expect(html).toContain('271,00');
-  expect(await frame.locator('tbody tr:not(.group)').count()).toBe(await dialog.locator('tbody tr:not(.pr-group)').count());
+  expect(await frame.locator('tbody tr:not(.group)').count()).toBe(await dialog.locator('tbody tr:not(.pr-group):not(.pr-empty-row)').count());
   const paper = await context.newPage();
   await paper.setContent(html);
   await paper.emulateMedia({media:'print'});

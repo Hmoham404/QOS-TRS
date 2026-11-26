@@ -1,5 +1,15 @@
 const iso = date => date.toISOString().slice(0, 10);
 
+export function shiftReportReference(mode, reference, direction) {
+  reportPeriod(mode, reference);
+  const date = new Date(`${reference}T12:00:00Z`);
+  if (mode === 'month') {
+    date.setUTCDate(1);
+    date.setUTCMonth(date.getUTCMonth() + direction);
+  } else date.setUTCDate(date.getUTCDate() + direction * (mode === 'week' ? 7 : 1));
+  return iso(date);
+}
+
 // UTC arithmetic keeps civil dates stable across daylight-saving changes.
 export function reportPeriod(mode, reference) {
   const date = new Date(`${reference}T12:00:00Z`);

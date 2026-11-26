@@ -18,8 +18,8 @@
   --dept-sidebar: #1c3059; --dept-sidebar-deep: #111d38; --dept-hero: #304f91; --dept-canvas: #f5f7fc;
 }
 [data-department=metallization] {
-  --dept-ink: #356279; --dept-bright: #b9e6f4; --dept-soft: #eaf2f6; --dept-border: #c3d5df;
-  --dept-sidebar: #263b49; --dept-sidebar-deep: #111d27; --dept-hero: #3f6477; --dept-canvas: #f2f5f7;
+  --dept-ink: #52616b; --dept-bright: #e1e8ed; --dept-soft: #edf0f3; --dept-border: #bac4cc;
+  --dept-sidebar: #505d68; --dept-sidebar-deep: #252e36; --dept-hero: #65747f; --dept-canvas: #f3f5f7;
 }
 [data-department=screen-printing] {
   --dept-ink: #91406d; --dept-bright: #f4bbd9; --dept-soft: #f9edf4; --dept-border: #e8c7da;
@@ -39,7 +39,7 @@
 }
 :root[data-theme=dark] [data-department=injection] {--dept-soft:#153b35;--dept-border:#30675b;--dept-canvas:#0b171b}
 :root[data-theme=dark] [data-department=assembly] {--dept-soft:#192f4d;--dept-border:#355a86;--dept-canvas:#0c1523}
-:root[data-theme=dark] [data-department=metallization] {--dept-soft:#203541;--dept-border:#426375;--dept-canvas:#101a22}
+:root[data-theme=dark] [data-department=metallization] {--dept-soft:#2b333b;--dept-border:#626f7c;--dept-canvas:#171d23}
 :root[data-theme=dark] [data-department=screen-printing] {--dept-soft:#392638;--dept-border:#75516a;--dept-canvas:#1c141e}
 :root[data-theme=dark] [data-department=welding] {--dept-soft:#3e222a;--dept-border:#85424e;--dept-canvas:#1d1319}
 :root[data-theme=dark] .app[data-department] {--dept-accent:var(--dept-bright)}
@@ -143,16 +143,20 @@
   box-shadow:inset 0 1px #ffffff18,0 10px 24px color-mix(in srgb,var(--dept-sidebar-deep) 12%,transparent);
 }
 .app[data-department=metallization] .sidebar .department-logo {
-  color:#e4f7ff;border-color:#a8c4d35e;
-  background:linear-gradient(135deg,#98afbe35 0%,#dbeef64a 25%,#506b7d26 47%,#c0d9e73b 70%,#37516230 100%);
+  color:#29343d;border-color:#d9e1e8;
+  background:linear-gradient(130deg,#909da8 0%,#edf2f6 25%,#b1bdc7 49%,#f5f7f9 70%,#96a4af 100%);
 }
-.app[data-department=metallization] .topbar {border-block-start-color:#829fab}
+.app[data-department=metallization] .topbar {border-block-start-color:#9aa8b4}
 .app[data-department=metallization] :is(.daily-hero,.hero-kpi,.curves-kpi.curves-kpi-trs) {
-  background:linear-gradient(115deg,#192a36 0%,#304b5a 43%,#496a7b 70%,#2b4657 100%);
-  border-color:#829fac66;
+  background:linear-gradient(115deg,#29343e 0%,#52616f 25%,#788896 48%,#485765 72%,#2d3843 100%);
+  border-color:#aab7c5;
+  box-shadow:inset 0 1px #ffffff70,inset 0 -1px #18232d70,0 8px 22px #26333e20;
 }
-.app[data-department=metallization] .btn.primary {background:linear-gradient(120deg,#2d5369,#406c81);border-color:#426c80;box-shadow:inset 0 1px #ffffff24,0 3px 8px #172d3b14}
-.app[data-department=metallization] .btn.primary:hover {background:#294e62}
+.app[data-department=metallization] .btn.primary {background:linear-gradient(115deg,#3e4c59,#71828f 48%,#445360);border-color:#8c9ba8;box-shadow:inset 0 1px #ffffff60,0 3px 8px #27344220}
+.app[data-department=metallization] .btn.primary:hover {background:linear-gradient(115deg,#33414e,#607482 48%,#364653)}
+.app[data-department=metallization] .sidebar{background:linear-gradient(165deg,#26323d 0%,#56636f 32%,#35424e 58%,#202b35 100%)}
+.department-comparison [data-department=metallization].comparison-card{border-inline-start-color:#8797a5;box-shadow:inset 0 1px #ffffff90,0 3px 12px #52616b14}
+.department-comparison [data-department=metallization] .comparison-icon{color:#354552;border:1px solid #aab7c3;background:linear-gradient(130deg,#97a6b3,#edf2f6 28%,#b8c4ce 52%,#f5f7f9 74%,#9aaab7);box-shadow:inset 0 1px #ffffffcc}
 .app[data-department] .department-empty-mark {width:84px;height:84px;border-radius:22px;box-shadow:inset 0 1px #ffffff22}
 @media(max-width:760px) {
   .app[data-department] .department-identity{font-size:10px;margin-block-end:8px;padding:4px 9px 4px 5px}

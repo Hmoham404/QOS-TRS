@@ -16,7 +16,7 @@ export const DEPARTMENTS = [{
   icon: MetallizationLogo
 }, {
   id: "screen-printing",
-  name: "Sérigraphie",
+  name: "Décoration",
   icon: ScreenPrintingLogo
 }, {
   id: "assembly",

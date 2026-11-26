@@ -1,3 +1,4 @@
+import { withDepartmentLines } from './comparison-groups.js';
 // Parameters supplied by the workshop. Cycles outside Injection are per piece.
 export const DEPARTMENT_IDS = ['injection', 'assembly', 'welding', 'metallization', 'screen-printing'];
 export const DEPARTMENT_CONFIG = {
@@ -5,7 +6,7 @@ export const DEPARTMENT_CONFIG = {
   assembly: { name: 'Assemblage', enabled: true, trs: .8, dle: .8 },
   welding: { name: 'Soudure', enabled: true, trs: .8, dle: .8 },
   metallization: { name: 'Métallisation', enabled: true, trs: .7, dle: .7 },
-  'screen-printing': { name: 'Sérigraphie', enabled: true, trs: .8, dle: .8 },
+  'screen-printing': { name: 'Décoration', enabled: true, trs: .8, dle: .8 },
 };
 export function departmentConfig(id = 'injection') {
   const config = DEPARTMENT_CONFIG[id];
@@ -46,7 +47,7 @@ export function departmentSeed(department) {
   const config = departmentConfig(department);
   const group = groups[department];
   if (!group) return { department, presses: [], articles: [], records: [] };
-  return {
+  return withDepartmentLines({
     department,
     // A configurable production line, with no invented production history.
     presses: [{ id: `70000000-0000-4000-8000-${group}00000000000`, name: `Ligne ${config.name}`, active: true, department }],
@@ -57,5 +58,5 @@ export function departmentSeed(department) {
       trs_target: config.trs, dle_target: config.dle, active: true,
     })),
     records: [],
-  };
+  });
 }

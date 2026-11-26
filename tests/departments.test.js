@@ -42,7 +42,7 @@ test('Les catalogues reprennent les paramètres fournis sans historique inventé
   assert.equal(departmentConfig('welding').enabled, true);
   assert.deepEqual(welding.articles.map(a => [a.name,a.code,a.mold_cycle_seconds,a.standard_seconds,a.standard_operators]), [['Base+insert soudés KIKO','2.4.30049',5.94,11.88,2]]);
   for (const data of [metal,screen,assembly,welding]) {
-    assert.equal(data.presses.length, 1);
+    assert.equal(data.presses.length, data === metal ? 3 : 1);
     assert.equal(data.records.length, 0);
     assert.ok(data.articles.every(a => a.cavities === 1 && a.trs_target === (data === metal ? .7 : .8) && a.dle_target === a.trs_target));
   }

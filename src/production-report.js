@@ -18,7 +18,7 @@ export function productionReport(datasets, from, to) {
       });
       const line = groups.get(key);
       line.count++;
-      if (!Number.isFinite(cycle) || cycle <= 0 || !Number.isInteger(quantity) || quantity < 0) line.invalid = true;
+      if (!Number.isFinite(cycle) || cycle <= 0 || row.good_qty == null || String(row.good_qty).trim() === '' || !Number.isInteger(quantity) || quantity < 0) line.invalid = true;
       else { line.quantity += quantity; line.seconds += quantity * cycle; }
     }
     // Show the available operations even when the selected period has no production.

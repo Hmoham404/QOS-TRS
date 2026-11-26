@@ -1,6 +1,7 @@
 import { departmentConfig, departmentSeed } from './departments.js';
 import { recordKey, validateRecord, laborHours } from './domain.js';
 import { overlapError } from './daily.js';
+import { withDepartmentLines } from './comparison-groups.js';
 
 export function createLocalStore(seed, storage) {
   const key = department => department === 'injection' ? 'qos-injection-v1' : `qos-${department}-v1`;
@@ -11,7 +12,7 @@ export function createLocalStore(seed, storage) {
     const data = JSON.parse(raw);
     if (!['presses','articles','records'].every(field => Array.isArray(data[field]))) throw new Error('La sauvegarde locale est illisible. Conservez-la avant toute réinitialisation.');
     if (data.department && data.department !== department) throw new Error('La sauvegarde appartient à un autre département.');
-    return {...data, department};
+    return withDepartmentLines({...data, department});
   }
   function saveRecord(record, department = 'injection') {
     const data = read(department), r = {...record, labor_hours:laborHours(record)};

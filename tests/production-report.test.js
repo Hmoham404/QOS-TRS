@@ -31,4 +31,9 @@ test('Le rapport ne confond pas absence, zéro production et données invalides'
   const invalid = productionReport([{department:'injection', articles, records:[{article_id:'base', date:'2026-11-15', good_qty:10, cycle_seconds:null}]}], '2026-11-01', '2026-11-30');
   assert.equal(invalid.invalid,true);
   assert.equal(invalid.hours,null);
+  for (const quantity of [null, undefined, '', ' ']) {
+    const missing = productionReport([{department:'injection',articles,records:[{article_id:'base',date:'2026-11-15',good_qty:quantity,cycle_seconds:5}]}], '2026-11-01', '2026-11-30');
+    assert.equal(missing.invalid,true);
+    assert.equal(missing.hours,null);
+  }
 });
