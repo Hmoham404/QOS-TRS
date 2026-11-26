@@ -1,3 +1,4 @@
+import { isSortingOnly } from './sorting.js';
 import { exportColumns, exportDepartmentName } from "./export-columns.js";
 import { aggregate, calculate } from './domain.js';
 import { getLanguage, t as translate } from './i18n.js';
@@ -34,7 +35,7 @@ export async function buildExcelExport(rows, data, {
   for (const row of sorted) {
     const c = calculate(row),
       article = articles.get(row.article_id);
-    details.addRow([new Date(row.date + 'T00:00:00Z'), translate(row.shift), presses.get(row.press_id)?.name ?? '', article?.code ?? '', article?.name ?? '', row.opening_min, row.planned_min, c.required, row[primaryBreakdown] ?? 0, row.startup_min, row.changeover_min, c.runtime, c.total, row.good_qty, row.startup_rejects, row.production_rejects, row.cycle_seconds, c.availability, c.performance, c.quality, c.trs, row.standard_seconds, c.labor, c.earned, c.dle, row.notes ?? '', row.shift_start ?? '', translate(row.timeline_complete ? 'Oui' : 'Non'), JSON.stringify(row.stop_events ?? []), row.planned_qty ?? null, ...extras.map(field => row[field] ?? 0), ...(data.department && data.department !== "injection" ? [row.standard_operators ?? null, row.trs_target ?? null, row.dle_target ?? null] : []), row.work_order ?? "", row.operator_count ?? null, row.labor_duration_hours ?? null, row.sorting_hours ?? null]);
+    details.addRow([new Date(row.date + 'T00:00:00Z'), translate(row.shift), presses.get(row.press_id)?.name ?? '', article?.code ?? '', article?.name ?? '', row.opening_min, row.planned_min, c.required, row[primaryBreakdown] ?? 0, row.startup_min, row.changeover_min, c.runtime, c.total, row.good_qty, row.startup_rejects, row.production_rejects, row.cycle_seconds, c.availability, c.performance, c.quality, c.trs, row.standard_seconds, c.labor, c.earned, c.dle, row.notes ?? '', row.shift_start ?? '', translate(row.timeline_complete ? 'Oui' : 'Non'), JSON.stringify(row.stop_events ?? []), row.planned_qty ?? null, ...extras.map(field => row[field] ?? 0), ...(data.department && data.department !== "injection" ? [row.standard_operators ?? null, row.trs_target ?? null, row.dle_target ?? null] : []), row.work_order ?? "", row.operator_count ?? null, row.labor_duration_hours ?? null, translate(isSortingOnly(row) ? "Tri uniquement" : "Production"), row.sorting_hours ?? null]);
   }
   details.getColumn(headers.length).numFmt = '#,##0.00';
   details.getColumn(1).numFmt = 'yyyy-mm-dd';

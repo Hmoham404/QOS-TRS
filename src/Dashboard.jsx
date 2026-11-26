@@ -3,6 +3,7 @@ import { departmentConfig, targetForRows } from "./departments.js";
 import ChartPointValue from "./ChartPointValue";
 import { unplannedTypesFor } from "./losses.js";
 import { getLocale, t as translate } from "./i18n.js";
+import { isSortingOnly } from './sorting.js';
 import React, { useMemo, useState } from "react";
 import { Activity, Clock3, Gauge, ShieldCheck, ArrowUpRight, Factory, Download, AlertTriangle, Target, Layers3, BarChart3, ChevronRight } from "lucide-react";
 import { LabelList, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, BarChart, Bar, Cell, Legend } from "recharts";
@@ -70,6 +71,7 @@ export default function Dashboard({
     // Group once instead of scanning the complete history for every day/line.
     const byDate=new Map(), byPress=new Map(), byShift=new Map();
     for (const row of rows) {
+      if (isSortingOnly(row)) continue;
       for (const [groups,key] of [[byDate,row.date],[byPress,row.press_id],[byShift,row.shift]]) {
         if (!groups.has(key)) groups.set(key, []);
         groups.get(key).push(row);

@@ -1,6 +1,7 @@
 import { aggregate, SHIFTS, today } from './domain.js';
 import { stopTypesFor } from './losses.js';
 import { timelineSegments, validateTimeline } from './analytics.js';
+import { isSortingOnly } from './sorting.js';
 
 // Calendar dates are workshop-local dates. UTC is only used for date arithmetic.
 export function shiftDate(date, days) {
@@ -33,16 +34,16 @@ export function dailyPresses(data, date, { press = 'all', shift = 'all' } = {}) 
       const totals = aggregate(records);
       const shifts = SHIFTS.filter(s => shift === 'all' || s === shift).map(name => {
         const selected = records.filter(r => r.shift === name);
-        return { name, records: selected, ...aggregate(selected) };
+        return { name, records: selected, sortingOnly: selected.length > 0 && selected.every(isSortingOnly), ...aggregate(selected) };
       });
       const complete = records.filter(r => r.timeline_complete && !validateTimeline(r).length);
       return { ...p, records, totals, shifts, complete,
-        status: !records.length ? 'missing' : totals.runtime > 0 ? 'worked' : 'stopped',
-        opening: records.reduce((sum, r) => sum + Number(r.opening_min), 0),
+        status: !records.length ? 'missing' : records.every(isSortingOnly) ? 'sorting' : totals.runtime > 0 ? 'worked' : 'stopped',
+        opening: records.filter(r => !isSortingOnly(r)).reduce((sum, r) => sum + Number(r.opening_min), 0),
         stopped: totals.planned + totals.unplanned,
         conflicts: complete.some(r => overlapError(r, data.records)),
       };
-    }).sort((a, b) => ({worked:0, stopped:1, missing:2}[a.status] - {worked:0, stopped:1, missing:2}[b.status]) || a.name.localeCompare(b.name, 'fr', { numeric: true }));
+    }).sort((a, b) => ({worked:0, stopped:1, sorting:2, missing:3}[a.status] - {worked:0, stopped:1, sorting:2, missing:3}[b.status]) || a.name.localeCompare(b.name, 'fr', { numeric: true }));
 }
 export function dailyTimeline(records) {
   const base = records[0] ? Date.parse(records[0].date + 'T00:00:00Z') / 60000 : 0;
@@ -63,7 +64,7 @@ export function dailyTimeline(records) {
   return { journals, gaps, end };
 }
 export function dailyStops(records) {
-  return records.flatMap(r => {
+  return records.filter(r => !isSortingOnly(r)).flatMap(r => {
     const STOP_TYPES = stopTypesFor(r.department);
     if (r.timeline_complete && !validateTimeline(r).length) return r.stop_events.map((e, index) => ({ ...e, key: r.id + ':' + index, record: r, minutes: e.end_min - e.start_min, timed: true, label: e.cause.trim() || STOP_TYPES[e.category].label }));
     return Object.entries(STOP_TYPES).filter(([, t]) => Number(r[t.field]) > 0).map(([category, t]) => ({ key: r.id + ':' + category, category, record: r, minutes: Number(r[t.field]), timed: false, label: t.label }));

@@ -2,17 +2,22 @@ import { departmentConfig, departmentSeed } from './departments.js';
 import { recordKey, validateRecord, laborHours } from './domain.js';
 import { overlapError } from './daily.js';
 import { withDepartmentLines } from './comparison-groups.js';
+import { withAssemblyArticles } from './assembly-references.js';
 
 export function createLocalStore(seed, storage) {
   const key = department => department === 'injection' ? 'qos-injection-v1' : `qos-${department}-v1`;
   function read(department = 'injection') {
     departmentConfig(department);
     const raw = storage.getItem(key(department));
-    if (!raw) return department === 'injection' ? {...structuredClone(seed), department} : departmentSeed(department);
+    if (!raw) {
+      const data = department === 'injection' ? {...structuredClone(seed), department} : departmentSeed(department);
+      return department === 'assembly' ? withAssemblyArticles(data, read('metallization').articles) : data;
+    }
     const data = JSON.parse(raw);
     if (!['presses','articles','records'].every(field => Array.isArray(data[field]))) throw new Error('La sauvegarde locale est illisible. Conservez-la avant toute réinitialisation.');
     if (data.department && data.department !== department) throw new Error('La sauvegarde appartient à un autre département.');
-    return withDepartmentLines({...data, department});
+    const updated = withDepartmentLines({...data, department});
+    return department === 'assembly' ? withAssemblyArticles(updated, read('metallization').articles) : updated;
   }
   function saveRecord(record, department = 'injection') {
     const data = read(department), r = {...record, labor_hours:laborHours(record)};

@@ -1,10 +1,12 @@
 import { unplannedTypesFor } from "./losses.js";
 import { t as translate } from "./i18n.js";
 import { aggregate, calculate, ratio } from "./domain.js";
+import { isSortingOnly } from './sorting.js';
 
 // Only compare production and planning on the same records. A missing plan is
 // different from an explicit zero, and must not inflate the completion rate.
 export function planningRate(rows) {
+  rows = rows.filter(r => !isSortingOnly(r));
   const plannedRows = rows.filter(r => r.planned_qty != null);
   const planned = plannedRows.reduce((sum, r) => sum + r.planned_qty, 0);
   const actual = plannedRows.reduce((sum, r) => sum + r.good_qty, 0);
@@ -25,6 +27,7 @@ export function trsLosses(rows) {
   };
   let speedGain = 0;
   for (const r of rows) {
+    if (isSortingOnly(r)) continue;
     const c = calculate(r);
     for (const [key, type] of UNPLANNED_TYPES) totals[key] += Number(r[type.field]) || 0;
     const speed = c.runtime - c.total * r.cycle_seconds / 60;
@@ -52,6 +55,7 @@ export function trsLosses(rows) {
   };
 }
 export function curveSeries(rows, presses) {
+  rows = rows.filter(r => !isSortingOnly(r));
   if (!rows.length) return {
     days: [],
     machines: []

@@ -52,6 +52,43 @@ En mode Supabase, appliquer **`supabase/13_labor_and_work_order.sql` après les 
 
 ## Heures de tri et blocs qualité
 
+Le formulaire propose **Activité → Tri uniquement**. Ce mode enregistre la date,
+le poste, l’équipement, la référence, les heures de tri cumulées de tous les
+opérateurs et, éventuellement, le numéro OF et un commentaire. Il ne crée ni
+pièces produites, ni temps machine, ni heures MOD de production. Les taux
+OEE/DLE restent vides ; la journée de tri seule n’ajoute aucun point aux courbes
+de production. Les heures restent visibles dans la comparaison et l’historique,
+et les exports CSV/Excel indiquent l’activité. Une journée avec production et tri
+peut toujours être saisie en **Production**, avec le champ Heures de tri existant.
+
+Les sept références d’Assemblage (Compact KIKO et les six références de
+Métallisation) sont proposées dans les deux modes, **Production** et **Tri
+uniquement**. Le même produit peut avoir un relevé de production et un relevé de
+tri distincts pour la même date, le même poste et le même équipement. Modifier
+les heures de tri ne modifie pas les quantités ni les temps de production.
+Les doublons restent interdits à l’intérieur d’une même activité.
+
+En mode local, les références sont reprises sans écraser les paramètres,
+archives, identifiants ou noms personnalisés existants. Le préfixe « Tri · »
+généré auparavant est supprimé des références concernées. Les cycles et standards
+initialement repris de Métallisation restent modifiables dans **Équipements &
+articles**, indépendamment du catalogue de Métallisation ; l’historique conserve
+ses paramètres enregistrés.
+Pour Supabase, appliquer `supabase/16_assembly_sorting_references.sql` puis
+`supabase/17_independent_production_sorting.sql` après 01 à 15. La migration 17
+met à jour les noms générés et distingue l’activité dans la contrainte d’unicité,
+sans copier ni réécrire les relevés. Les deux scripts sont rejouables.
+
+Le tri seul utilise les colonnes existantes : ouverture entièrement hors du temps
+requis (`planned_min = opening_min`), quantités et heures MOD de production à
+zéro, aucune perte ni journal d’arrêts, heures de tri strictement positives.
+Cette représentation maintient aussi les taux SQL non calculables sans nouvelle
+colonne. L’application exclut ces relevés des arrêts planifiés, du Pareto, du
+planning et du rapport de production ; elle conserve leurs heures de tri.
+Les anciens relevés de production ne sont pas reclassés à partir du seul champ
+Heures de tri : pour un ancien relevé de tri, ouvrir Modifier et choisir
+explicitement **Tri uniquement**.
+
 La saisie de production propose **Heures de tri**, un champ facultatif à côté du numéro OF. Il accepte les heures décimales, y compris zéro. Les brouillons, sauvegardes JSON et exports CSV/Excel conservent cette valeur. Elle reste indépendante du DLE et des heures MOD.
 
 Dans la comparaison des départements, quatre blocs remplacent la petite ligne de synthèse : **% Rebut**, **Pièces conformes**, **Pièces rebutées** et **Heures de tri**. Ils suivent les dates sélectionnées. Le taux de rebut est le total des rebuts divisé par la quantité totale. Les heures de tri totalisent les valeurs renseignées ; « — » signifie qu’aucune valeur n’est renseignée sur cette période. Les anciens relevés ne reçoivent aucune heure inventée.
@@ -235,7 +272,7 @@ La performance inclut les pertes de disponibilité ; le produit disponibilité �
 
 Les cycles et standards sont conservés **dans chaque relevé**. Modifier les paramètres d’un article ne recalcule pas le passé. Modifier l’article d’un relevé recharge ses nouveaux paramètres. Le SQL applique la même règle côté serveur.
 
-Une combinaison **date + poste + presse + article** est unique. Si une presse fabrique plusieurs articles pendant un poste, répartir les temps et heures entre les relevés ; ne pas répéter la durée complète du poste pour chaque article.
+Une combinaison **date + poste + presse + article + activité** est unique : un relevé de Production et un relevé de Tri uniquement peuvent coexister pour le même produit. Si une presse fabrique plusieurs articles pendant un poste, répartir les temps et heures entre les relevés de production ; ne pas répéter la durée complète du poste pour chaque article.
 
 ### Corrections de la synthèse
 

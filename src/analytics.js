@@ -1,3 +1,4 @@
+import { isSortingOnly } from './sorting.js';
 import { t as translate } from "./i18n.js";
 import { calculate, SHIFTS } from "./domain.js";
 import { STOP_TYPES, stopTypesFor, unplannedMinutes } from "./losses.js";
@@ -106,6 +107,7 @@ export function hourlyUseful(r) {
   return buckets;
 }
 export function buildPareto(rows, includePlanned = false) {
+  rows = rows.filter(r => !isSortingOnly(r));
   const grouped = new Map();
   let detailed = 0;
   const add = (key, label, category, minutes) => {
@@ -150,6 +152,7 @@ export function buildPareto(rows, includePlanned = false) {
   };
 }
 export function usefulByShift(rows) {
+  rows = rows.filter(r => !isSortingOnly(r));
   return SHIFTS.map(shift => {
     const selected = rows.filter(r => r.shift === shift);
     return {

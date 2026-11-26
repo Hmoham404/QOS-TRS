@@ -2,6 +2,7 @@ import { departmentConfig } from '../src/departments.js';
 import { EXTRA_LOSS_FIELDS, extraLossDefaults } from '../src/losses.js';
 import {readFileSync,writeFileSync,existsSync} from 'node:fs';
 import {validateRecord} from '../src/domain.js';
+import {isSortingOnly} from '../src/sorting.js';
 const [input,output]=process.argv.slice(2);
 if(!input||!output){console.error('Usage: node scripts/backup-to-sql.mjs sauvegarde.json reprise.sql');process.exit(1);}
 if(existsSync(output)){console.error('Le fichier de sortie existe déjà. Choisissez un nouveau nom.');process.exit(1);}
@@ -26,6 +27,9 @@ if(department!=='injection') {
   for(const index of [1,2])definitions[index][2].push('standard_operators','trs_target','dle_target');
 }
 const weldingPrerequisite = department === 'welding' ? ['-- Appliquer aussi 08_welding.sql avant cette reprise.'] : [];
+if (data.records.some(isSortingOnly)) {
+  weldingPrerequisite.push('-- Appliquer aussi 16_assembly_sorting_references.sql puis 17_independent_production_sorting.sql avant cette reprise : Production et Tri peuvent partager la même date, le même poste, le même équipement et le même article.');
+}
 if (data.records.some(r => r.sorting_hours != null)) {
   definitions[2][2].push('sorting_hours');
   weldingPrerequisite.push('-- Appliquer aussi 14_sorting_hours.sql avant cette reprise.');

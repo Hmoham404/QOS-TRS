@@ -3,6 +3,7 @@ import { validateTimeline } from './analytics.js';
 import { DEPARTMENT_IDS } from './departments.js';
 import { getLocale } from './i18n.js';
 import { shiftTimeErrors } from './shift-time.js';
+import { isSortingOnly } from './sorting.js';
 export const SHIFTS = ['Matin', 'Après-Midi', 'Nuit'];
 export const numericFields = [...EXTRA_LOSS_FIELDS, 'opening_min', 'planned_min', 'breakdown_min', 'startup_min', 'changeover_min', 'good_qty', 'startup_rejects', 'production_rejects', 'labor_hours'];
 export const laborHours = r => r.operator_count != null && r.labor_duration_hours != null
@@ -49,6 +50,11 @@ export function aggregate(rows) {
     ...Object.fromEntries(UNPLANNED_TYPES.map(([key]) => [key, 0]))
   };
   for (const r of rows) {
+    if (isSortingOnly(r)) {
+      sum.sorting += Number(r.sorting_hours);
+      sum.sortingCount++;
+      continue;
+    }
     const c = calculate(r);
     sum.required += c.required;
     sum.runtime += c.runtime;
@@ -101,7 +107,7 @@ export function validateRecord(r) {
   if (c.runtime === 0 && c.total > 0) errors.push('Une production nécessite un temps machine supérieur à zéro.');
   return [...errors, ...shiftTimeErrors(r), ...validateTimeline(r)];
 }
-export const recordKey = r => [r.date, r.shift, r.press_id, r.article_id].join('|');
+export const recordKey = (r, activity = isSortingOnly(r) ? 'sorting' : 'production') => [r.date, r.shift, r.press_id, r.article_id, activity].join('|');
 const numberFormats = new Map(), dateFormats = new Map();
 export const formatNumber = (n, digits = 0) => {
   if (n == null) return '—';

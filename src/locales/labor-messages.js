@@ -1,4 +1,13 @@
 export default {
+  'Activité': {en:'Activity',ar:'النشاط',it:'Attività',zh:'活动'},
+  'Activité du relevé': {en:'Record activity',ar:'نشاط السجل',it:'Attività del rilevamento',zh:'记录活动'},
+  'Date du tri': {en:'Sorting date',ar:'تاريخ الفرز',it:'Data della selezione',zh:'分拣日期'},
+  'Production': {en:'Production',ar:'الإنتاج',it:'Produzione',zh:'生产'},
+  'Tri uniquement': {en:'Sorting only',ar:'فرز فقط',it:'Solo selezione',zh:'仅分拣'},
+  'Le tri est enregistré dans cet atelier, sans production ni calcul OEE/DLE. Les heures de tri restent visibles.': {en:'Sorting is recorded in this workshop, without production or OEE/DLE calculations. Sorting hours remain visible.',ar:'يُسجل الفرز في هذه الورشة دون إنتاج أو حساب OEE/DLE. تبقى ساعات الفرز ظاهرة.',it:'La selezione è registrata in questo reparto, senza produzione né calcoli OEE/DLE. Le ore di selezione restano visibili.',zh:'分拣记录在本车间，不计入生产或OEE/DLE计算。分拣工时仍然可见。'},
+  'Saisissez le total des heures de tri de tous les opérateurs.': {en:'Enter the total sorting hours for all operators.',ar:'أدخل مجموع ساعات الفرز لجميع العمال.',it:'Inserire il totale delle ore di selezione di tutti gli operatori.',zh:'请输入所有操作工的分拣总工时。'},
+  'Renseignez les heures de tri, supérieures à zéro.': {en:'Enter sorting hours greater than zero.',ar:'أدخل ساعات فرز أكبر من صفر.',it:'Inserire ore di selezione maggiori di zero.',zh:'请输入大于零的分拣工时。'},
+  'Un relevé existe déjà pour cette combinaison date, poste, équipement, article et activité.': {en:'A record already exists for this date, shift, equipment, article and activity.',ar:'يوجد سجل لهذا التاريخ والوردية والمعدة والصنف والنشاط.',it:'Esiste già un rilevamento per questa data, turno, attrezzatura, articolo e attività.',zh:'此日期、班次、设备、产品和活动已有记录。'},
   'Les heures de tri doivent être comprises entre 0 et 1 000 000.': {en:'Sorting hours must be between 0 and 1,000,000.',ar:'يجب أن تكون ساعات الفرز بين 0 و1000000.',it:'Le ore di selezione devono essere comprese tra 0 e 1.000.000.',zh:'分拣工时必须介于0和1,000,000之间。'},
   'Exécutez supabase/14_sorting_hours.sql dans SQL Editor. Le brouillon est conservé.': {en:'Run supabase/14_sorting_hours.sql in SQL Editor. Your draft is preserved.',ar:'نفّذ supabase/14_sorting_hours.sql في محرر SQL. تم الاحتفاظ بالمسودة.',it:'Esegui supabase/14_sorting_hours.sql in SQL Editor. La bozza è conservata.',zh:'请在SQL编辑器中执行supabase/14_sorting_hours.sql。草稿已保留。'},
   'Pièces rebutées': {en:'Rejected units',ar:'القطع المرفوضة',it:'Pezzi scartati',zh:'不良品数量'},

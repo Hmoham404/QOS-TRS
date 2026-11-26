@@ -1,4 +1,5 @@
 export { reportPeriod } from './report-period.js';
+import { isSortingOnly } from './sorting.js';
 
 // Each historical cycle stays separate: catalogue changes must not rewrite earned time.
 export function productionReport(datasets, from, to) {
@@ -6,6 +7,7 @@ export function productionReport(datasets, from, to) {
   for (const data of datasets) {
     const groups = new Map();
     for (const row of data.records) {
+      if (isSortingOnly(row)) continue;
       if (row.date < from || row.date > to) continue;
       const article = data.articles.find(item => item.id === row.article_id);
       const cycle = Number(row.cycle_seconds);

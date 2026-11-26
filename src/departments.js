@@ -1,4 +1,5 @@
 import { withDepartmentLines } from './comparison-groups.js';
+import { withAssemblyArticles } from './assembly-references.js';
 // Parameters supplied by the workshop. Cycles outside Injection are per piece.
 export const DEPARTMENT_IDS = ['injection', 'assembly', 'welding', 'metallization', 'screen-printing'];
 export const DEPARTMENT_CONFIG = {
@@ -47,7 +48,7 @@ export function departmentSeed(department) {
   const config = departmentConfig(department);
   const group = groups[department];
   if (!group) return { department, presses: [], articles: [], records: [] };
-  return withDepartmentLines({
+  const data = withDepartmentLines({
     department,
     // A configurable production line, with no invented production history.
     presses: [{ id: `70000000-0000-4000-8000-${group}00000000000`, name: `Ligne ${config.name}`, active: true, department }],
@@ -59,4 +60,5 @@ export function departmentSeed(department) {
     })),
     records: [],
   });
+  return department === 'assembly' ? withAssemblyArticles(data, departmentSeed('metallization').articles) : data;
 }

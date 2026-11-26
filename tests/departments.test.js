@@ -38,7 +38,8 @@ test('Les catalogues reprennent les paramètres fournis sans historique inventé
     ['11600BD',.75,22.5,30],['12900CO',1.036,31.08,30],['12900BD',1.036,31.08,30],
   ]);
   assert.deepEqual(screen.articles.map(a => [a.code,a.mold_cycle_seconds,a.standard_seconds,a.standard_operators]), [['2.4.30051',5,7.5,1.5]]);
-  assert.deepEqual(assembly.articles.map(a => [a.code,a.mold_cycle_seconds,a.standard_seconds,a.standard_operators]), [['3.3.30273',3.26,42.35,13]]);
+  assert.deepEqual(assembly.articles.slice(0,1).map(a => [a.code,a.mold_cycle_seconds,a.standard_seconds,a.standard_operators]), [['3.3.30273',3.26,42.35,13]]);
+  assert.deepEqual(assembly.articles.slice(1).map(a => a.code), metal.articles.map(a => a.code));
   assert.equal(departmentConfig('welding').enabled, true);
   assert.deepEqual(welding.articles.map(a => [a.name,a.code,a.mold_cycle_seconds,a.standard_seconds,a.standard_operators]), [['Base+insert soudés KIKO','2.4.30049',5.94,11.88,2]]);
   for (const data of [metal,screen,assembly,welding]) {
