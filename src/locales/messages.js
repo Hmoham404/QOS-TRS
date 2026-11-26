@@ -1,9 +1,11 @@
 // UI messages. French source keys are also the French fallback.
 import departmentMessages from './department-messages.js';
+import reportMessages from './report-messages.js';
 import shiftTimeMessages from './shift-time-messages.js';
 import methodMessages from './method-messages.js';
 import laborMessages from './labor-messages.js';
 export default {
+  ...reportMessages,
   ...laborMessages,
   ...departmentMessages,
   ...shiftTimeMessages,

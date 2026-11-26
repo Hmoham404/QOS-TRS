@@ -120,3 +120,19 @@ body{background:var(--canvas);color:var(--text)}::selection{background:#22ac8d35
   .theme-switcher{display:none!important}html[data-theme] body,html[data-theme] .main,html[data-theme] .content{background:#fff;color:#18374b}
   html[data-theme] .chart-point-value{stroke:#fff;filter:none}
 }
+
+/* Header controls share one centre line and one height on desktop. */
+@media(min-width:801px){
+  .topbar{flex-wrap:nowrap}
+  .topbar .breadcrumb{flex:1;min-width:0;overflow:hidden;white-space:nowrap}
+  .topbar .breadcrumb strong{overflow:hidden;text-overflow:ellipsis}
+  .topbar .top-actions{flex:none;flex-wrap:nowrap;align-items:center;gap:10px}
+  .topbar .language-caption{display:none}
+  .topbar .language-options,.topbar .theme-switcher,.topbar .report-trigger,.topbar .connection{height:42px;min-height:42px;box-sizing:border-box;margin-block:0}
+  .topbar .language-options{align-items:center;border-radius:12px}
+  .topbar .language-options button{height:32px;padding-block:4px}
+  .topbar .theme-switcher button{min-height:32px;height:32px;padding-block:4px}
+  .topbar .connection{display:flex;align-items:center}
+}
+@media(min-width:801px) and (max-width:1340px){.topbar .connection{display:none}}
+@media(min-width:801px) and (max-width:1150px){.topbar .breadcrumb>span,.topbar .breadcrumb>strong,.topbar .breadcrumb>svg{display:none}.topbar .top-actions{gap:7px}.topbar .language-picker{min-width:252px}}

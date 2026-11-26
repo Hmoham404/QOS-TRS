@@ -1,3 +1,5 @@
+import { FileText } from "lucide-react";
+import './production-report.css';
 import MethodGuide from "./MethodGuide.jsx";
 import { IconButton, Empty, Badge } from './ui.jsx';
 import { exportColumns } from "./export-columns.js";
@@ -17,6 +19,7 @@ import DraftList from "./DraftList";
 import { SHIFTS, calculate, percent, formatNumber as num, dateLabel, today } from "./domain";
 import DailyReview from "./DailyReview";
 import { yesterday } from "./daily";
+const ProductionReport = lazy(() => import('./ProductionReport.jsx'));
 const Dashboard = lazy(() => import('./Dashboard.jsx'));
 const DepartmentComparison = lazy(() => import('./DepartmentComparison.jsx'));
 const Curves = lazy(() => import('./Curves.jsx'));
@@ -85,6 +88,7 @@ function Workshop({ department, onDepartmentChange }) {
     [notice, setNotice] = useState(""),
     [meeting, setMeeting] = useState(false),
     [menu, setMenu] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [dailyDate, setDailyDate] = useState(yesterday),
     [entryDefaults, setEntryDefaults] = useState({}),
     [returnPage, setReturnPage] = useState("history");
@@ -209,12 +213,13 @@ function Workshop({ department, onDepartmentChange }) {
     setReturnPage("history");
   };
   return <div className={`app ${meeting ? "meeting" : ""}`} data-department={department}>
+    {reportOpen && <Suspense fallback={<div className="loading" role="status">{translate("Chargement des donn?es?")}</div>}><ProductionReport onClose={() => setReportOpen(false)} /></Suspense>}
     {menu && <button className="menu-overlay" aria-label={translate("Fermer le menu")} onClick={() => setMenu(false)} />}
     <aside className={`sidebar ${menu ? "open" : ""}`}><a className="brand" href="#" onClick={e => {
         e.preventDefault();
         go("comparison");
       }}><span className="brand-mark"><Activity size={24} /></span><span>OEE/DLE</span></a><DepartmentSwitcher department={department} onChange={changeDepartment} /><p className="nav-label">{translate("PILOTAGE DE L’ATELIER")}</p><nav>{sections.map(([key, label, Icon]) => <button key={key} className={page === key ? "active" : ""} onClick={() => go(key)}><Icon size={19} />{translate(label)}{page === key && <span className="nav-active" />}</button>)}</nav></aside>
-    <main className="main"><header className="topbar"><div className="breadcrumb"><IconButton label={translate("Ouvrir le menu")} onClick={() => setMenu(true)}><Menu size={19} /></IconButton><span>{translate("Atelier")} {translate(selectedDepartment.name)}</span><ChevronRight size={14} /><strong>{sections.find(s => s[0] === page)?.[1]}</strong></div><div className="top-actions"><LanguageSelector /><ThemeSwitcher /><span className={`connection ${configured ? "cloud" : ""}`}><Database size={14} />{configured ? data?.offline ? translate("Copie hors connexion") : data ? translate("Atelier partagé") : translate("Connexion…") : translate("Mode local")}</span><span className="top-date">{new Date().toLocaleDateString(getLocale(), {
+    <main className="main"><header className="topbar"><div className="breadcrumb"><IconButton label={translate("Ouvrir le menu")} onClick={() => setMenu(true)}><Menu size={19} /></IconButton><span>{translate("Atelier")} {translate(selectedDepartment.name)}</span><ChevronRight size={14} /><strong>{sections.find(s => s[0] === page)?.[1]}</strong></div><div className="top-actions"><button type="button" className="btn report-trigger" onClick={() => setReportOpen(true)}><FileText size={16}/>{translate("Rapport de production")}</button><LanguageSelector /><ThemeSwitcher /><span className={`connection ${configured ? "cloud" : ""}`}><Database size={14} />{configured ? data?.offline ? translate("Copie hors connexion") : data ? translate("Atelier partagé") : translate("Connexion…") : translate("Mode local")}</span><span className="top-date">{new Date().toLocaleDateString(getLocale(), {
               day: "numeric",
               month: "long",
               year: "numeric"
